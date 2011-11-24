@@ -1,0 +1,14 @@
+<package>
+  <description brief="jrl_dynamics_urdf">
+
+     jrl_dynamics_urdf
+
+  </description>
+  <author>Thomas Moulard</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/jrl_dynamics_urdf</url>
+
+</package>
+
+
