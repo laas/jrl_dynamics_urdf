@@ -1,7 +1,7 @@
 <package>
-  <description brief="jrl_dynamics_urdf">
+  <description brief="URDF parser for jrl-dynamics">
 
-     jrl_dynamics_urdf
+    URDF parser for jrl-dynamics
 
   </description>
   <author>Thomas Moulard</author>
@@ -9,6 +9,7 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/jrl_dynamics_urdf</url>
 
+  <depend package="urdf"/>
+  <depend package="urdf_interface"/>
+
 </package>
-
-
