@@ -9,6 +9,8 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/jrl_dynamics_urdf</url>
 
+  <rosdep name="jrl-dynamics"/>
+
   <depend package="urdf"/>
   <depend package="urdf_interface"/>
 
