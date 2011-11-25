@@ -18,9 +18,9 @@ ADD_REQUIRED_DEPENDENCY("jrl-dynamics")
 rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 
-rosbuild_add_library(${PROJECT_NAME} src/parser.cpp)
+rosbuild_add_library(${PROJECT_NAME} src/parser.cc)
 #target_link_libraries(${PROJECT_NAME} another_library)
 PKG_CONFIG_USE_DEPENDENCY(${PROJECT_NAME} jrl-dynamics)
 
-#rosbuild_add_executable(example examples/example.cpp)
-#target_link_libraries(example ${PROJECT_NAME})
+rosbuild_add_executable(example examples/example.cc)
+target_link_libraries(example ${PROJECT_NAME})
