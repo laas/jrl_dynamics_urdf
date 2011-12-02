@@ -7,3 +7,6 @@ src/lisp/
 src/jrl_dynamics_urdf/
 srv/lisp/
 srv_gen/
+AccelerationCoM.dat
+Accelerations.dat
+CoMs.dat
