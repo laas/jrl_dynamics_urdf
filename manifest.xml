@@ -9,6 +9,13 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/jrl_dynamics_urdf</url>
 
+  <export>
+    <cpp
+       cflags="-I${prefix}/include"
+       lflags="-L${prefix}/lib -ljrl_dynamics_urdf"
+       />
+  </export>
+
   <rosdep name="jrl-dynamics"/>
 
   <depend package="urdf"/>

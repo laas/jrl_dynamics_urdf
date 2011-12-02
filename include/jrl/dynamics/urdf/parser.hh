@@ -21,6 +21,9 @@
 # define JRL_DYNAMICS_URDF_PARSER
 
 # include <string>
+# include <urdf/model.h>
+# include <jrl/mal/matrixabstractlayer.hh>
+
 
 class CjrlHumanoidDynamicRobot;
 
@@ -30,10 +33,14 @@ namespace jrl {
       /// Parser that builds a robot of type CjrlHumanoidDynamicRobot
       /// The robot is read from an urdf file.
       class Parser {
-      public:
-	Parser ();
-	virtual ~Parser ();
-	CjrlHumanoidDynamicRobot* parse (const std::string& filename) const;
+        public:
+		  ::urdf::Model model_;
+
+	      Parser();
+          virtual ~Parser();
+          CjrlHumanoidDynamicRobot* parse(const std::string& filename);
+		  matrix4d getPoseInReferenceFrame(::std::string referenceJoint, ::std::string currentJoint);
+	      matrix4d poseToMatrix(::urdf::Pose p);
       }; // class Parser
     } // urdf
   } // dynamics
