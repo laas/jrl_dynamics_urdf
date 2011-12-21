@@ -21,24 +21,39 @@
 # define JRL_DYNAMICS_URDF_PARSER
 
 # include <string>
-# include <urdf/model.h>
-# include <jrl/mal/matrixabstractlayer.hh>
+# include <map>
 
+# include <urdf/model.h>
+
+# include <jrl/mal/matrixabstractlayer.hh>
+# include <abstract-robot-dynamics/humanoid-dynamic-robot.hh>
+# include <jrl/dynamics/dynamicsfactory.hh>
 
 class CjrlHumanoidDynamicRobot;
 
 namespace jrl {
   namespace dynamics {
     namespace urdf {
+
+	  typedef std::map< ::std::string, CjrlJoint* > MapJrlJoint;
+
       /// Parser that builds a robot of type CjrlHumanoidDynamicRobot
       /// The robot is read from an urdf file.
       class Parser {
         public:
 		  ::urdf::Model model_;
+		  MapJrlJoint jointsMap_;
 
 	      Parser();
           virtual ~Parser();
-          CjrlHumanoidDynamicRobot* parse(const std::string& filename);
+          CjrlHumanoidDynamicRobot* parse(const std::string& filename,
+										 const std::string& rootJointName);
+	  	  CjrlJoint* parseActuatedJoints ( const std::string rootJointName);
+	  	  std::vector<CjrlJoint*> actuatedJoints ( void );
+	  	  void connectJoints(CjrlJoint* rootJoint);
+	      void addBodiesToJoints(void); 
+
+	  	  std::vector<std::string> getChildrenJoint(std::string jointName);
 		  matrix4d getPoseInReferenceFrame(::std::string referenceJoint, ::std::string currentJoint);
 	      matrix4d poseToMatrix(::urdf::Pose p);
       }; // class Parser

@@ -5,7 +5,7 @@ int main (int argc, char** argv)
 	jrl::dynamics::urdf::Parser parser;
 
     matrix4d res; 
-	parser.parse("/opt/ros/diamondback/stacks/pr2_mechanism/pr2_mechanism_model/pr2.urdf");
+	parser.parse("/opt/ros/diamondback/stacks/pr2_mechanism/pr2_mechanism_model/pr2.urdf", "base_footprint_joint");
 	//res= parser.getPoseInReferenceFrame(::std::string("torso_lift_joint"),::std::string("r_shoulder_pan_joint"));
 	//res= parser.getPoseInReferenceFrame(::std::string("torso_lift_joint"),::std::string("r_shoulder_lift_joint"));
 	//res= parser.getPoseInReferenceFrame(::std::string("torso_lift_joint"),::std::string("r_upper_arm_roll_joint"));
