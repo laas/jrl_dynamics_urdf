@@ -156,13 +156,6 @@ namespace jrl
       void
       Parser::parseActuatedJoints (const std::string rootJointName)
       {
-	// Handle free floating (root joint).
-
-	// Retrieve free floating joint from the model using its name.
-	// Fail if it does not exist.
-	if (!model_.getJoint(rootJointName))
-	  throw std::runtime_error ("root joint does not exist");
-
 	// Create free floating joint.
 	// FIXME: position set to identity for now.
 	matrix4d position;
