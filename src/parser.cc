@@ -113,7 +113,8 @@ namespace jrl
       {}
 
       CjrlHumanoidDynamicRobot*
-      Parser::parse (const std::string& filename, const std::string& rootJointName)
+      Parser::parse (const std::string& filename,
+		     const std::string& rootJointName)
       {
 	// Reset the attributes to avoid problems when loading
 	// multiple robots using the same object.
@@ -160,9 +161,11 @@ namespace jrl
 	// FIXME: position set to identity for now.
 	matrix4d position;
 	position.setIdentity ();
-	rootJoint_ = makeJointFreeFlyer (jointsMap_, position, rootJointName, factory_);
+	rootJoint_ = makeJointFreeFlyer (jointsMap_, position, rootJointName,
+					 factory_);
 	if (!rootJoint_)
-	  throw std::runtime_error ("failed to create root joint (free floating)");
+	  throw std::runtime_error
+	    ("failed to create root joint (free floating)");
 	robot_->rootJoint(*rootJoint_);
 
 	// Iterate through each "true cinematic" joint and create a
@@ -259,7 +262,8 @@ namespace jrl
 	double tmpMass;
 	vector3d tmpLocalCom;
 	matrix3d tmpInertiaMatrix;
-        for(MapJrlJoint::const_iterator it = jointsMap_.begin(); it != jointsMap_.end(); ++it)
+        for(MapJrlJoint::const_iterator it = jointsMap_.begin();
+	    it != jointsMap_.end(); ++it)
 	  {
 	    // get child link
 	    childLinkName = model_.getJoint(it->first)->child_link_name;
@@ -332,9 +336,12 @@ namespace jrl
 	    model_.getJoint(currentJointName)->parent_to_joint_origin_transform;
 	matrix4d transform = poseToMatrix(jointToParentTransform);
 	// move to next parent joint
-	std::string parentLinkName = model_.getJoint(currentJointName)->parent_link_name;
-	std::string parentJointName = model_.getLink(parentLinkName)->parent_joint->name;
-	transform *= getPoseInReferenceFrame(referenceJointName, parentJointName);
+	std::string parentLinkName =
+	  model_.getJoint(currentJointName)->parent_link_name;
+	std::string parentJointName =
+	  model_.getLink(parentLinkName)->parent_joint->name;
+	transform *= getPoseInReferenceFrame(referenceJointName,
+					     parentJointName);
 
 	return transform;
       }
