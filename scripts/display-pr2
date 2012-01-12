@@ -1,0 +1,9 @@
+#!/bin/sh
+
+PR2_MECHANISMS_MODEL=`rospack find pr2_mechanism_model`
+if test x$PR2_MECHANISMS_MODEL = x; then
+    echo "failed to find PR2 model. Is pr2_mechanisms_model installed" \
+	"and available in your ROS_PACKAGE_PATH?"
+    return 1
+fi
+rosrun jrl_dynamics_urdf display-robot $PR2_MECHANISMS_MODEL/pr2.urdf

@@ -1,0 +1,17 @@
+NAO_DESCRIPTION_MODEL=`rospack find nao_description`
+if test x$NAO_DESCRIPTION_MODEL = x; then
+    echo "failed to find Nao model. Is nao_description installed" \
+	"and available in your ROS_PACKAGE_PATH?"
+    return 1
+fi
+XACRO=`rospack find xacro`
+if test x$XACRO = x; then
+    echo "failed to find Xacro. Is xacro installed" \
+	"and available in your ROS_PACKAGE_PATH?"
+    return 1
+fi
+
+TMP_FILE=`mktemp nao.udf.XXXXXXXXXX`
+rosrun xacro xacro.py NAO_DESCRIPTION_MODEL/urdf/nao_robot.urdf.xacro > $TMP_FILE
+rosrun jrl_dynamics_urdf display-robot $TMP_FILE
+rm -f $TMP_FILE

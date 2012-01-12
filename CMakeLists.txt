@@ -3,7 +3,8 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 
 INCLUDE(cmake/base.cmake)
 
-set(ROS_BUILD_TYPE RelWithDebInfo)
+#set(ROS_BUILD_TYPE RelWithDebInfo)
+set(ROS_BUILD_TYPE Debug)
 
 rosbuild_init()
 
@@ -22,5 +23,5 @@ rosbuild_add_library(${PROJECT_NAME} src/parser.cc)
 #target_link_libraries(${PROJECT_NAME} another_library)
 PKG_CONFIG_USE_DEPENDENCY(${PROJECT_NAME} jrl-dynamics)
 
-rosbuild_add_executable(example examples/example.cc)
-target_link_libraries(example ${PROJECT_NAME})
+rosbuild_add_executable(display-robot examples/display-robot.cc)
+target_link_libraries(display-robot ${PROJECT_NAME})
