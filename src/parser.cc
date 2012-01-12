@@ -149,8 +149,7 @@ namespace jrl
 	// Add corresponding body(link) to each joint
 	addBodiesToJoints();
 
-	//robot_->initialize();
-	std::cout << "parsed robot" << std::endl;
+	robot_->initialize();
 	return robot_;
       }
 
