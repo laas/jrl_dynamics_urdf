@@ -16,7 +16,49 @@
 
 #include <cassert>
 #include <boost/foreach.hpp>
+#include <boost/format.hpp>
 #include "jrl/dynamics/urdf/parser.hh"
+
+void displayPosition (matrix4d position, const std::string& prefix = "")
+{
+  static const char* appendToPrefix = " ";
+  std::string newPrefix = prefix + appendToPrefix;
+  for (unsigned i = 0; i < 4; ++i)
+    {
+      std::cout << newPrefix;
+      for (unsigned j = 0; j < 4; ++j)
+	std::cout << " " << position (i, j);
+      std::cout << std::endl;
+    }
+}
+
+void displayBody (CjrlBody* body, const std::string& prefix = "")
+{
+  static const char* appendToPrefix = " ";
+
+  if (!body)
+    {
+      std::cout << "null body" << std::endl;
+      return;
+    }
+
+  std::string newPrefix = prefix + appendToPrefix;
+
+  std::cout
+    << newPrefix << "- ptr: " << body << std::endl
+    << newPrefix << "- joint (ptr): " << body->joint () << std::endl
+    << newPrefix << "- local center of mass: " << std::endl
+    << newPrefix << " - X: " << body->localCenterOfMass ()[0] << std::endl
+    << newPrefix << " - Y: " << body->localCenterOfMass ()[1] << std::endl
+    << newPrefix << " - Z: " << body->localCenterOfMass ()[2] << std::endl
+    << newPrefix << "- mass: " << body->mass () << std::endl;
+}
+
+void displayHand (CjrlHand* hand, const std::string& prefix = "")
+{}
+
+void displayFoot (CjrlFoot* foot, const std::string& prefix = "")
+{}
 
 void displayJoint (CjrlJoint* joint, const std::string& prefix = "")
 {
@@ -34,7 +76,28 @@ void displayJoint (CjrlJoint* joint, const std::string& prefix = "")
     << newPrefix << "- ptr: " << joint << std::endl
     << newPrefix << "- name: " << joint->getName () << std::endl
     << newPrefix << "- parent (ptr): " << joint->parentJoint () << std::endl
-    << newPrefix << "- dof(s): " << joint->numberDof () << std::endl
+    << newPrefix << "- dof(s): " << joint->numberDof () << std::endl;
+  for (unsigned i = 0; i < joint->numberDof (); ++i)
+    {
+      boost::format fmt
+	("- bounds for dof %d: position : [%f; %f]");
+      boost::format fmtVel
+	("                    velocity : [%f; %f]");
+      fmt % i % joint->lowerBound (i) % joint->upperBound (i);
+      fmtVel % joint->lowerVelocityBound (i) % joint->upperVelocityBound (i);
+      std::cout << newPrefix << fmt.str () << std::endl
+		<< newPrefix << fmtVel.str () << std::endl;
+    }
+  std::cout
+    << newPrefix << "- body: " << std::endl;
+  displayBody (joint->linkedBody (), newPrefix);
+  std::cout
+    << newPrefix << "- initial position: " << std::endl;
+  displayPosition (joint->initialPosition (), newPrefix);
+  std::cout
+    << newPrefix << "- current position: " << std::endl;
+  displayPosition (joint->currentTransformation (), newPrefix);
+  std::cout
     << newPrefix << "- children: " << joint->countChildJoints () << std::endl;
 
   for (unsigned i = 0; i < joint->countChildJoints (); ++i)
@@ -56,6 +119,20 @@ void displayRobot (CjrlHumanoidDynamicRobot* robot)
   assert (robot);
   std::cout << "Humanoid robot:" << std::endl
 	    << " - waist: " << robot->waist () << std::endl
+	    << " - chest: " << robot->chest () << std::endl
+	    << " - left wrist: " << robot->leftWrist () << std::endl
+	    << " - right wrist: " << robot->rightWrist () << std::endl
+	    << " - left hand: " << robot->leftHand () << std::endl;
+  displayHand (robot->leftHand (), " ");
+  std::cout << " - right hand: " << robot->rightHand () << std::endl;
+  displayHand (robot->rightHand (), " ");
+  std::cout << " - left ankle: " << robot->leftAnkle () << std::endl
+	    << " - right ankle: " << robot->rightAnkle () << std::endl
+	    << " - left foot: " << robot->leftFoot () << std::endl;
+  displayFoot (robot->leftFoot (), " ");
+  std::cout << " - right foot: " << robot->rightFoot () << std::endl;
+  displayFoot (robot->rightFoot (), " ");
+  std::cout << " - gaze: " << robot->gazeJoint () << std::endl
 	    << std::endl
 	    << "Dynamic robot:" << std::endl
 	    << " - root joint: " << std::endl;
@@ -75,7 +152,7 @@ int main (int argc, char** argv)
 		<< "Hint: use display-pr2 instead to avoid "
 		<< "looking for the PR2 model manually."
 		<< std::endl;
-      return 1;	
+      return 1;
     }
 
   CjrlHumanoidDynamicRobot* robot = parser.parse

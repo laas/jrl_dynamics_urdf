@@ -38,14 +38,18 @@ namespace jrl
       makeJointRotation (Parser::MapJrlJoint& jointsMap,
 			 const matrix4d& position,
 			 const std::string& name,
-			 const double& lower,
-			 const double& upper,
+			 const Parser::UrdfJointLimitsPtrType& limits,
 			 dynamicsJRLJapan::ObjectFactory& factory)
       {
 	CjrlJoint* joint = factory.createJointRotation (position);
 	joint->setName (name);
-	joint->lowerBound (0, lower);
-	joint->upperBound (0, upper);
+	if (limits)
+	  {
+	    joint->lowerBound (0, limits->lower);
+	    joint->upperBound (0, limits->upper);
+	    joint->lowerVelocityBound (0, -limits->velocity);
+	    joint->upperVelocityBound (0, limits->velocity);
+	  }
 	jointsMap[name] = joint;
 	return joint;
       }
@@ -56,22 +60,28 @@ namespace jrl
 			   const std::string& name,
 			   dynamicsJRLJapan::ObjectFactory& factory)
       {
+	//FIXME: handle properly continuous joints.
+	Parser::UrdfJointLimitsPtrType emptyLimits;
 	return makeJointRotation
-	  (jointsMap, position, name, -3.14, 3.14, factory);
+	  (jointsMap, position, name, emptyLimits, factory);
       }
 
       CjrlJoint*
       makeJointTranslation (Parser::MapJrlJoint& jointsMap,
 			    const matrix4d& position,
 			    const std::string& name,
-			    const double& lower,
-			    const double& upper,
+			    const Parser::UrdfJointLimitsPtrType& limits,
 			    dynamicsJRLJapan::ObjectFactory& factory)
       {
 	CjrlJoint* joint = factory.createJointTranslation (position);
 	joint->setName (name);
-	joint->lowerBound (0, lower);
-	joint->upperBound (0, upper);
+	if (limits)
+	  {
+	    joint->lowerBound (0, limits->lower);
+	    joint->upperBound (0, limits->upper);
+	    joint->lowerVelocityBound (0, -limits->velocity);
+	    joint->upperVelocityBound (0, limits->velocity);
+	  }
 	jointsMap[name] = joint;
 	return joint;
       }
@@ -100,13 +110,37 @@ namespace jrl
 	return joint;
       }
 
+      CjrlJoint*
+      findJoint (const std::string& jointName,
+		 const Parser::MapJrlJoint& map)
+      {
+	Parser::MapJrlJoint::const_iterator it = map.find (jointName);
+	if (it == map.end ())
+	  return 0;
+	return it->second;
+      }
+
 
       Parser::Parser ()
 	: model_ (),
 	  robot_ (),
 	  rootJoint_ (),
 	  jointsMap_ (),
-	  factory_ ()
+	  factory_ (),
+
+	  // Define default frame names as defined by REP 120:
+	  // http://www.ros.org/reps/rep-0120.html
+	  waistJointName_ ("base_footprint_joint"),
+	  chestJointName_ ("torso_lift_joint"),
+	  leftWristJointName_ ("l_gripper_joint"),
+	  rightWristJointName_ ("r_gripper_joint"),
+	  leftHandJointName_ ("l_hand"),
+	  rightHandJointName_ ("r_hand"),
+	  leftAnkleJointName_ ("l_ankle"),
+	  rightAnkleJointName_ ("r_ankle"),
+	  leftFootJointName_ ("l_foot"),
+	  rightFootJointName_ ("r_foot"),
+	  gazeJointName_ ("gaze")
       {}
 
       Parser::~Parser ()
@@ -157,15 +191,19 @@ namespace jrl
 	    connectJoints(child->second);
 	  }
 
-	// Notifying special joints
-	robot_->waist(jointsMap_["base_footprint_joint"]);
-	robot_->chest(jointsMap_["torso_lift_joint"]);
-	robot_->leftWrist(jointsMap_["l_gripper_joint"]);
-	robot_->rightWrist(jointsMap_["r_gripper_joint"]);
+	// Look for special joints and attach them to the model.
+	robot_->waist (findJoint (waistJointName_, jointsMap_));
+	robot_->chest (findJoint (chestJointName_, jointsMap_));
+	robot_->leftWrist (findJoint (leftWristJointName_, jointsMap_));
+	robot_->rightWrist (findJoint (rightWristJointName_, jointsMap_));
+	robot_->leftAnkle (findJoint (leftAnkleJointName_, jointsMap_));
+	robot_->rightAnkle (findJoint (rightAnkleJointName_, jointsMap_));
+	robot_->gazeJoint (findJoint (rightFootJointName_, jointsMap_));
 
-	// Add corresponding body(link) to each joint
+	// Add corresponding body (link) to each joint.
 	addBodiesToJoints();
 
+	//FIXME: disabled for now as jrl-dynamics anchor support is buggy.
 	//robot_->initialize();
 	return robot_;
       }
@@ -189,10 +227,8 @@ namespace jrl
 	for(MapJointType::const_iterator it = model_.joints_.begin();
 	    it != model_.joints_.end(); ++it)
 	  {
-	    // FIXME: compute joint position
-	    // position =
-	    // getPoseInReferenceFrame("base_footprint_joint",
-	    // it->first);
+	    position =
+	      getPoseInReferenceFrame("base_footprint_joint", it->first);
 
 	    switch(it->second->type)
 	      {
@@ -202,8 +238,7 @@ namespace jrl
 		break;
 	      case ::urdf::Joint::REVOLUTE:
 		makeJointRotation (jointsMap_, position, it->first,
-				   it->second->limits->lower,
-				   it->second->limits->upper,
+				   it->second->limits,
 				   factory_);
 		break;
 	      case ::urdf::Joint::CONTINUOUS:
@@ -211,8 +246,7 @@ namespace jrl
 		break;
 	      case ::urdf::Joint::PRISMATIC:
 		makeJointTranslation (jointsMap_, position, it->first,
-				      it->second->limits->lower,
-				      it->second->limits->upper,
+				      it->second->limits,
 				      factory_);
 		break;
 	      case ::urdf::Joint::FLOATING:
@@ -324,16 +358,41 @@ namespace jrl
 		<< "WARNING: missing inertial information in model"
 		<< std::endl;
 
-	    // TODO get center of mass in local frame, inertia matrix
-	    // in global frame and body mass
+	    CjrlJoint* jrlJoint = it->second;
+	    if (jrlJoint
+		&& (joint->name == leftHandJointName_
+		    || joint->name == rightHandJointName_))
+	      {
+		HandPtrType hand = factory_.createHand (jrlJoint);
 
-	    // Create body and fill its fiels..
-	    BodyPtrType body = factory_.createBody();
-	    body->mass(mass);
-	    body->localCenterOfMass(localCom);
-	    body->inertiaMatrix(inertiaMatrix);
+		//FIXME: parse additional data here
+
+		if (joint->name == leftHandJointName_)
+		  robot_->leftHand (hand);
+		else
+		  robot_->rightHand (hand);
+	      }
+	    if (jrlJoint
+		&& (joint->name == leftFootJointName_
+		    || joint->name == rightFootJointName_))
+	      {
+		FootPtrType foot = factory_.createFoot (jrlJoint);
+
+		//FIXME: parse additional data here
+
+		if (joint->name == leftFootJointName_)
+		  robot_->leftFoot (foot);
+		else
+		  robot_->rightFoot (foot);
+	      }
+
+	    // Create body and fill its fields..
+	    BodyPtrType body = factory_.createBody ();
+	    body->mass (mass);
+	    body->localCenterOfMass (localCom);
+	    body->inertiaMatrix (inertiaMatrix);
 	    // Link body to joint.
-	    it->second->setLinkedBody(*body);
+	    it->second->setLinkedBody (*body);
 	  }
       }
 
@@ -389,11 +448,11 @@ namespace jrl
 	    (model_.getJoint
 	     (currentJointName)->parent_to_joint_origin_transform);
 
-	// get transform to parent link
+	// Get transform to parent link.
 	::urdf::Pose jointToParentTransform =
 	    model_.getJoint(currentJointName)->parent_to_joint_origin_transform;
 	matrix4d transform = poseToMatrix(jointToParentTransform);
-	// move to next parent joint
+	// Move to next parent joint.
 	std::string parentLinkName =
 	  model_.getJoint(currentJointName)->parent_link_name;
 	std::string parentJointName =

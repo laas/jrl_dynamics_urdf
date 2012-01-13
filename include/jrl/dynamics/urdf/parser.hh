@@ -61,11 +61,14 @@ namespace jrl
       public:
 	typedef boost::shared_ptr< ::urdf::Link> UrdfLinkPtrType;
 	typedef boost::shared_ptr< ::urdf::Joint> UrdfJointPtrType;
+	typedef boost::shared_ptr< ::urdf::JointLimits> UrdfJointLimitsPtrType;
 	typedef boost::shared_ptr<const ::urdf::Link> UrdfLinkConstPtrType;
 	typedef boost::shared_ptr<const ::urdf::Joint> UrdfJointConstPtrType;
 
 	typedef CjrlJoint* JointPtrType;
 	typedef CjrlBody* BodyPtrType;
+	typedef CjrlHand* HandPtrType;
+	typedef CjrlFoot* FootPtrType;
 
 	/// \brief Map of abstract robot dynamics compatible joints.
 	typedef std::map<std::string, JointPtrType> MapJrlJoint;
@@ -108,6 +111,22 @@ namespace jrl
 	JointPtrType rootJoint_;
 	MapJrlJoint jointsMap_;
 	dynamicsJRLJapan::ObjectFactory factory_;
+
+	/// \brief Special joints names.
+	/// \{
+	std::string waistJointName_;
+	std::string chestJointName_;
+	std::string leftWristJointName_;
+	std::string rightWristJointName_;
+	std::string leftHandJointName_;
+	std::string rightHandJointName_;
+	std::string leftAnkleJointName_;
+	std::string rightAnkleJointName_;
+	std::string leftFootJointName_;
+	std::string rightFootJointName_;
+	std::string gazeJointName_;
+	/// \}
+
       }; // class Parser
     } // end of namespace urdf.
   } // end of namespace  dynamics.
