@@ -227,8 +227,9 @@ namespace jrl
 	for(MapJointType::const_iterator it = model_.joints_.begin();
 	    it != model_.joints_.end(); ++it)
 	  {
-	    position =
-	      getPoseInReferenceFrame("base_footprint_joint", it->first);
+	    //FIXME: fix this code.
+	    // position =
+	    //   getPoseInReferenceFrame("base_footprint_joint", it->first);
 
 	    switch(it->second->type)
 	      {
