@@ -59,20 +59,28 @@ namespace jrl
       class Parser
       {
       public:
+	typedef boost::shared_ptr< ::urdf::Link> UrdfLinkPtrType;
+	typedef boost::shared_ptr< ::urdf::Joint> UrdfJointPtrType;
+	typedef boost::shared_ptr<const ::urdf::Link> UrdfLinkConstPtrType;
+	typedef boost::shared_ptr<const ::urdf::Joint> UrdfJointConstPtrType;
+
+	typedef CjrlJoint* JointPtrType;
+	typedef CjrlBody* BodyPtrType;
+
 	/// \brief Map of abstract robot dynamics compatible joints.
-	typedef std::map<std::string, CjrlJoint* > MapJrlJoint;
+	typedef std::map<std::string, JointPtrType> MapJrlJoint;
 	/// \brief Map of URDF joints.
-	typedef std::map<std::string, boost::shared_ptr< ::urdf::Joint> >
-	MapJointType;
+	typedef std::map<std::string, UrdfJointPtrType> MapJointType;
 
 	/// \brief Default constructor, do nothing.
-	explicit Parser();
+	explicit Parser ();
 	/// \brief Destructor.
-	virtual ~Parser();
+	virtual ~Parser ();
 
 	/// \brief Parse an URDF file and return a humanoid robot.
 	CjrlHumanoidDynamicRobot*
-	parse(const std::string& filename, const std::string& rootJointName);
+	parse (const std::string& filename,
+	       const std::string& rootJointName);
 
       protected:
 	void
@@ -91,12 +99,13 @@ namespace jrl
 	std::vector<std::string>
 	getChildrenJoint (const std::string& jointName);
 
-	matrix4d getPoseInReferenceFrame(std::string referenceJoint, std::string currentJoint);
+	matrix4d getPoseInReferenceFrame(const std::string& referenceJoint,
+					 const std::string& currentJoint);
 	matrix4d poseToMatrix(::urdf::Pose p);
       private:
 	::urdf::Model model_;
 	CjrlHumanoidDynamicRobot* robot_;
-	CjrlJoint* rootJoint_;
+	JointPtrType rootJoint_;
 	MapJrlJoint jointsMap_;
 	dynamicsJRLJapan::ObjectFactory factory_;
       }; // class Parser

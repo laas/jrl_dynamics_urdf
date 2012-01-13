@@ -138,7 +138,24 @@ namespace jrl
 	robot_->setActuatedJoints (actJointsVect);
 
 	// Create the kinematic tree.
-	connectJoints(rootJoint_);
+	// We iterate over the URDF root joints to connect them to the
+	// root link that we added "manually" before. Then we iterate
+	// in the whole tree using the connectJoints method.
+	boost::shared_ptr<const ::urdf::Link> rootLink = model_.getRoot ();
+	if (!rootLink)
+	  throw std::runtime_error ("URDF model is missing a root link");
+
+	typedef boost::shared_ptr<const ::urdf::Joint> JointPtr_t;
+	BOOST_FOREACH (const JointPtr_t& joint, rootLink->child_joints)
+	  {
+	    if (!joint)
+	      throw std::runtime_error ("null shared pointer in URDF model");
+	    MapJrlJoint::const_iterator child = jointsMap_.find (joint->name);
+	    if (child == jointsMap_.end () || !child->second)
+	      throw std::runtime_error ("missing node in kinematics tree");
+	    rootJoint_->addChildJoint (*child->second);
+	    connectJoints(child->second);
+	  }
 
 	// Notifying special joints
 	robot_->waist(jointsMap_["base_footprint_joint"]);
@@ -149,7 +166,7 @@ namespace jrl
 	// Add corresponding body(link) to each joint
 	addBodiesToJoints();
 
-	robot_->initialize();
+	//robot_->initialize();
 	return robot_;
       }
 
@@ -219,22 +236,24 @@ namespace jrl
       std::vector<CjrlJoint*> Parser::actuatedJoints ()
       {
 	std::vector<CjrlJoint*> jointsVect;
-	jointsVect.push_back (jointsMap_["base_footprint_joint"]);
-	jointsVect.push_back (jointsMap_["torso_lift_joint"]);
-	jointsVect.push_back (jointsMap_["r_shoulder_pan_joint"]);
-	jointsVect.push_back (jointsMap_["r_shoulder_lift_joint"]);
-	jointsVect.push_back (jointsMap_["r_upper_arm_roll_joint"]);
-	jointsVect.push_back (jointsMap_["r_elbow_flex_joint"]);
-	jointsVect.push_back (jointsMap_["r_forearm_roll_joint"]);
-	jointsVect.push_back (jointsMap_["r_wrist_flex_joint"]);
-	jointsVect.push_back (jointsMap_["r_wrist_roll_joint"]);
-	jointsVect.push_back (jointsMap_["l_shoulder_pan_joint"]);
-	jointsVect.push_back (jointsMap_["l_shoulder_lift_joint"]);
-	jointsVect.push_back (jointsMap_["l_upper_arm_roll_joint"]);
-	jointsVect.push_back (jointsMap_["l_elbow_flex_joint"]);
-	jointsVect.push_back (jointsMap_["l_forearm_roll_joint"]);
-	jointsVect.push_back (jointsMap_["l_wrist_flex_joint"]);
-	jointsVect.push_back (jointsMap_["l_wrist_roll_joint"]);
+
+	typedef std::map<std::string, boost::shared_ptr< ::urdf::Joint > >
+	  jointMap_t;
+
+        for(jointMap_t::const_iterator it = model_.joints_.begin ();
+	    it != model_.joints_.end (); ++it)
+	  {
+	    if (!it->second)
+	      throw std::runtime_error ("null joint shared pointer");
+	    if (it->second->type == ::urdf::Joint::UNKNOWN
+		|| it->second->type == ::urdf::Joint::FLOATING
+		|| it->second->type == ::urdf::Joint::FIXED)
+	      continue;
+	    MapJrlJoint::const_iterator child = jointsMap_.find (it->first);
+	    if (child == jointsMap_.end () || !child->second)
+	      throw std::runtime_error ("failed to compute actuated joints");
+	    jointsVect.push_back (child->second);
+	  }
 	return jointsVect;
       }
 
@@ -255,32 +274,66 @@ namespace jrl
       void
       Parser::addBodiesToJoints ()
       {
-	std::string childLinkName;
-	boost::shared_ptr<const ::urdf::Link> tmpLink;
-	CjrlBody* tmpBody;
-	double tmpMass;
-	vector3d tmpLocalCom;
-	matrix3d tmpInertiaMatrix;
         for(MapJrlJoint::const_iterator it = jointsMap_.begin();
 	    it != jointsMap_.end(); ++it)
 	  {
-	    // get child link
-	    childLinkName = model_.getJoint(it->first)->child_link_name;
-	    tmpLink = model_.getLink(childLinkName);
+	    // Retrieve associated URDF joint.
+	    UrdfJointConstPtrType joint = model_.getJoint (it->first);
+	    if (!joint)
+	      continue;
+
+	    // Retrieve joint name.
+	    std::string childLinkName = joint->child_link_name;
+
+	    // Get child link.
+	    UrdfLinkConstPtrType link = model_.getLink (childLinkName);
+	    if (!link)
+	      throw std::runtime_error ("inconsistent model");
+
+	    // Retrieve inertial information.
+	    boost::shared_ptr< ::urdf::Inertial> inertial =
+	      link->inertial;
+
+	    vector3d localCom (0., 0., 0.);
+	    matrix3d inertiaMatrix;
+	    inertiaMatrix.setIdentity();
+	    double mass = 0.;
+	    if (inertial)
+	      {
+		//FIXME: properly re-orient the frames.
+		localCom[0] = inertial->origin.position.x;
+		localCom[1] = inertial->origin.position.y;
+		localCom[2] = inertial->origin.position.z;
+
+		mass = inertial->mass;
+
+		inertiaMatrix (0, 0) = inertial->ixx;
+		inertiaMatrix (0, 1) = inertial->ixy;
+		inertiaMatrix (0, 2) = inertial->ixz;
+
+		inertiaMatrix (1, 0) = inertial->ixy;
+		inertiaMatrix (1, 1) = inertial->iyy;
+		inertiaMatrix (1, 2) = inertial->iyz;
+
+		inertiaMatrix (2, 0) = inertial->ixz;
+		inertiaMatrix (2, 1) = inertial->iyz;
+		inertiaMatrix (2, 2) = inertial->izz;
+	      }
+	    else
+	      std::cerr
+		<< "WARNING: missing inertial information in model"
+		<< std::endl;
+
 	    // TODO get center of mass in local frame, inertia matrix
 	    // in global frame and body mass
-	    tmpLocalCom = vector3d(0,0,0);
-	    tmpInertiaMatrix.setIdentity();
-	    tmpMass = 1;
 
-	    // create body
-	    tmpBody = factory_.createBody();
-	    tmpBody->mass(tmpMass);
-	    // set center of mass and intertia matrix
-	    tmpBody->localCenterOfMass(tmpLocalCom);
-	    tmpBody->inertiaMatrix(tmpInertiaMatrix);
-	    //link body to joint
-	    it->second->setLinkedBody(*tmpBody);
+	    // Create body and fill its fiels..
+	    BodyPtrType body = factory_.createBody();
+	    body->mass(mass);
+	    body->localCenterOfMass(localCom);
+	    body->inertiaMatrix(inertiaMatrix);
+	    // Link body to joint.
+	    it->second->setLinkedBody(*body);
 	  }
       }
 
@@ -302,7 +355,12 @@ namespace jrl
 	  model_.getJoint(jointName);
 
 	if (!joint)
-	  throw std::runtime_error ("failed to retrieve children joint");
+	  {
+	    boost::format fmt
+	      ("failed to retrieve children joints of joint %s");
+	    fmt % jointName;
+	    throw std::runtime_error (fmt.str ());
+	  }
 
 	boost::shared_ptr<const ::urdf::Link> childLink =
 	  model_.getLink (joint->child_link_name);
@@ -322,8 +380,9 @@ namespace jrl
 	  }
       }
 
-      matrix4d Parser::getPoseInReferenceFrame(std::string referenceJointName,
-					       std::string currentJointName)
+      matrix4d
+      Parser::getPoseInReferenceFrame(const std::string& referenceJointName,
+				      const std::string& currentJointName)
       {
 	if(referenceJointName.compare(currentJointName) == 0)
 	  return poseToMatrix
