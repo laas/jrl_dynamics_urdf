@@ -2,25 +2,17 @@
 \mainpage
 \htmlinclude manifest.html
 
-\b jrl_dynamics_urdf is ... 
-
-<!-- 
-Provide an overview of your package.
--->
-
+\b jrl_dynamics_urdf is a jrl-dynamics loader for URDF files.
 
 \section codeapi Code API
 
-<!--
-Provide links to specific auto-generated API documentation within your
-package that is of particular interest to a reader. Doxygen will
-document pretty much every part of your code, so do your best here to
-point the reader to the actual API.
+The entry point of this package is the jrl::dynamics::urdf::Parser
+class. Once the object is instantiated (the constructor does not take
+any argument), the parse method can be called with the URDF filename
+and the root free-floating point name. This will return a jrl-dynamics
+humanoid robot that can be used for dynamics computation.
 
-If your codebase is fairly large or has different sets of APIs, you
-should use the doxygen 'group' tag to keep these APIs together. For
-example, the roscpp documentation has 'libros' group.
--->
-
+For additional details regarding how to realize dynamics computation,
+see the jrl-dynamics documentation directly.
 
 */
