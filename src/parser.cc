@@ -204,7 +204,7 @@ namespace jrl
 	addBodiesToJoints();
 
 	//FIXME: disabled for now as jrl-dynamics anchor support is buggy.
-	//robot_->initialize();
+	robot_->initialize();
 	return robot_;
       }
 
@@ -287,6 +287,11 @@ namespace jrl
 	    MapJrlJoint::const_iterator child = jointsMap_.find (it->first);
 	    if (child == jointsMap_.end () || !child->second)
 	      throw std::runtime_error ("failed to compute actuated joints");
+
+	    // The joints already exists in the vector, do not add it twice.
+	    if (std::find(jointsVect.begin (),
+			  jointsVect.end (), child->second) != jointsVect.end ())
+	      continue;
 	    jointsVect.push_back (child->second);
 	  }
 	return jointsVect;
