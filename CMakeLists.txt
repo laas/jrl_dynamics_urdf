@@ -25,3 +25,5 @@ PKG_CONFIG_USE_DEPENDENCY(${PROJECT_NAME} jrl-dynamics)
 
 rosbuild_add_executable(display-robot examples/display-robot.cc)
 target_link_libraries(display-robot ${PROJECT_NAME})
+
+add_subdirectory(tests)

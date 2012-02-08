@@ -16,6 +16,7 @@
        />
   </export>
 
+  <rosdep name="gtest"/>
   <rosdep name="jrl-dynamics"/>
 
   <depend package="bullet"/>

@@ -227,9 +227,8 @@ namespace jrl
 	for(MapJointType::const_iterator it = model_.joints_.begin();
 	    it != model_.joints_.end(); ++it)
 	  {
-	    //FIXME: fix this code.
-	    // position =
-	    //   getPoseInReferenceFrame("base_footprint_joint", it->first);
+	    position =
+	      getPoseInReferenceFrame("base_footprint_joint", it->first);
 
 	    switch(it->second->type)
 	      {
@@ -449,23 +448,37 @@ namespace jrl
       Parser::getPoseInReferenceFrame(const std::string& referenceJointName,
 				      const std::string& currentJointName)
       {
-	if(referenceJointName.compare(currentJointName) == 0)
+	if (referenceJointName == currentJointName)
 	  return poseToMatrix
 	    (model_.getJoint
 	     (currentJointName)->parent_to_joint_origin_transform);
 
-	// Get transform to parent link.
-	::urdf::Pose jointToParentTransform =
-	    model_.getJoint(currentJointName)->parent_to_joint_origin_transform;
-	matrix4d transform = poseToMatrix(jointToParentTransform);
-	// Move to next parent joint.
-	std::string parentLinkName =
-	  model_.getJoint(currentJointName)->parent_link_name;
-	std::string parentJointName =
-	  model_.getLink(parentLinkName)->parent_joint->name;
-	transform *= getPoseInReferenceFrame(referenceJointName,
-					     parentJointName);
+	// Retrieve corresponding joint in URDF tree.
+	UrdfJointConstPtrType joint = model_.getJoint(currentJointName);
+	if (!joint)
+	  throw std::runtime_error
+	    ("failed to retrieve parent while computing joint position");
 
+	// Get transform from parent link to joint.
+	::urdf::Pose jointToParentTransform =
+	    joint->parent_to_joint_origin_transform;
+
+	matrix4d transform = poseToMatrix (jointToParentTransform);
+
+	// Get parent joint name.
+	std::string parentLinkName = joint->parent_link_name;
+	UrdfLinkConstPtrType parentLink = model_.getLink(parentLinkName);
+
+	if (!parentLink)
+	  return transform;
+	UrdfJointConstPtrType parentJoint = parentLink->parent_joint;
+	if (!parentJoint)
+	  return transform;
+
+	// Compute previous transformation with current one.
+	transform =
+	  getPoseInReferenceFrame (referenceJointName,
+				   parentJoint->name) * transform;
 	return transform;
       }
 
