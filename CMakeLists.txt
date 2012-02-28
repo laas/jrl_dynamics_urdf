@@ -17,10 +17,12 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 ADD_REQUIRED_DEPENDENCY("jrl-dynamics")
 
 rosbuild_add_boost_directories()
-#rosbuild_link_boost(${PROJECT_NAME} thread)
+
+# Make sure Boost.Filesystem v2 is used.
+add_definitions(-DBOOST_FILESYSTEM_VERSION=2)
 
 rosbuild_add_library(${PROJECT_NAME} src/parser.cc)
-#target_link_libraries(${PROJECT_NAME} another_library)
+rosbuild_link_boost(${PROJECT_NAME} filesystem system)
 PKG_CONFIG_USE_DEPENDENCY(${PROJECT_NAME} jrl-dynamics)
 
 rosbuild_add_executable(display-robot examples/display-robot.cc)

@@ -85,6 +85,12 @@ namespace jrl
 	parse (const std::string& filename,
 	       const std::string& rootJointName);
 
+	/// \brief Parse an URDF sent as a stream and return a
+	/// humanoid robot.
+	CjrlHumanoidDynamicRobot*
+	parseStream (const std::string& robotDescription,
+		     const std::string& rootJointName);
+
       protected:
 	void
 	parseActuatedJoints (const std::string rootJointName);

@@ -19,6 +19,7 @@
 #include <string>
 #include <vector>
 
+#include <boost/filesystem/fstream.hpp>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
 
@@ -150,6 +151,25 @@ namespace jrl
       Parser::parse (const std::string& filename,
 		     const std::string& rootJointName)
       {
+	boost::filesystem::fstream stream
+	  (filename, boost::filesystem::fstream::in);
+	std::string robotDescription;
+	if (!stream.good ())
+	  throw std::runtime_error ("failed to open robot description");
+	while (stream)
+	  {
+	    std::string str;
+	    std::getline (stream, str);
+	    robotDescription += str;
+	    robotDescription += "\n";
+	  }
+	return parseStream (robotDescription, rootJointName);
+      }
+
+      CjrlHumanoidDynamicRobot*
+      Parser::parseStream (const std::string& robotDescription,
+			   const std::string& rootJointName)
+      {
 	// Reset the attributes to avoid problems when loading
 	// multiple robots using the same object.
 	model_.clear ();
@@ -158,7 +178,7 @@ namespace jrl
 	jointsMap_.clear ();
 
 	// Parse urdf model.
-	if (!model_.initFile (filename))
+	if (!model_.initString (robotDescription))
 	  throw std::runtime_error ("failed to open URDF file."
 				    " Is the filename location correct?");
 

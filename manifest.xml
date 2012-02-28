@@ -11,11 +11,13 @@
 
   <export>
     <cpp
-       cflags="-I${prefix}/include"
+       cflags="`rosboost-cfg --cflags` -DBOOST_FILESYSTEM_VERSION=2 -I${prefix}/include"
        lflags="-L${prefix}/lib -ljrl_dynamics_urdf"
        />
   </export>
 
+  <depend package="common_rosdeps" />
+  <rosdep name="boost" />
   <rosdep name="gtest"/>
   <rosdep name="jrl-dynamics"/>
 
