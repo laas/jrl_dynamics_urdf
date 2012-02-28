@@ -19,6 +19,8 @@
 #include <boost/format.hpp>
 #include "jrl/dynamics/urdf/parser.hh"
 
+#include <ros/ros.h>
+
 void displayPosition (matrix4d position, const std::string& prefix = "")
 {
   static const char* appendToPrefix = " ";
@@ -140,23 +142,51 @@ void displayRobot (CjrlHumanoidDynamicRobot* robot)
   displayActuatedJoints (robot->getActuatedJoints ());
 }
 
+void usage (int argc, char** argv)
+{
+  std::cerr << "Usage: " << argv[0] << " URDF_MODEL_PATH" << std::endl
+	    << "or:    " << argv[0] << std::endl
+	    << "URDF_MODEL_PATH is the location of the"
+	    << " robot model to be displayed." << std::endl
+	    << "Hint: use display-pr2 instead to avoid "
+	    << "looking for the PR2 model manually."
+	    << std::endl
+	    << "When no argument is passed, robot_description"
+	    << "ROS parameter is used"
+	    << std::endl;
+
+}
+
 int main (int argc, char** argv)
 {
   jrl::dynamics::urdf::Parser parser;
 
+  CjrlHumanoidDynamicRobot* robot = 0;
+
   if (argc < 2)
     {
-      std::cerr << "Usage: " << argv[0] << " URDF_MODEL_PATH" << std::endl
-		<< "URDF_MODEL_PATH is the location of the"
-		<< " robot model to be displayed." << std::endl
-		<< "Hint: use display-pr2 instead to avoid "
-		<< "looking for the PR2 model manually."
-		<< std::endl;
-      return 1;
-    }
+      std::cout
+	<< "No model description has been given, "
+	<< "retrieving model using ROS parameter (robot_description)."
+	<< std::endl;
 
-  CjrlHumanoidDynamicRobot* robot = parser.parse
-    (argv[1], "base_footprint_joint");
+      ros::init (argc, argv, "display_robot");
+      ros::NodeHandle nh;
+      std::string robotDescription;
+      ros::param::param<std::string>
+	("robot_description", robotDescription, "");
+      if (robotDescription.empty ())
+	{
+	  std::cout
+	    << "No model available as ROS parameter. Fail."
+	    << std::endl;
+	  usage (argc, argv);
+	  return 1;
+	}
+      robot = parser.parseStream (robotDescription, "base_footprint_joint");
+    }
+  else
+    robot = parser.parse (argv[1], "base_footprint_joint");
 
   if (!robot)
     {
