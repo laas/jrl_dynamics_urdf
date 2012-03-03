@@ -77,6 +77,7 @@ void displayJoint (CjrlJoint* joint, const std::string& prefix = "")
   std::cout
     << newPrefix << "- ptr: " << joint << std::endl
     << newPrefix << "- name: " << joint->getName () << std::endl
+    << newPrefix << "- rank: " << joint->rankInConfiguration () << std::endl
     << newPrefix << "- parent (ptr): " << joint->parentJoint () << std::endl
     << newPrefix << "- dof(s): " << joint->numberDof () << std::endl;
   for (unsigned i = 0; i < joint->numberDof (); ++i)
