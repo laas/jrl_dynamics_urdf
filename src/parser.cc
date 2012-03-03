@@ -128,20 +128,17 @@ namespace jrl
 	  rootJoint_ (),
 	  jointsMap_ (),
 	  factory_ (),
-
-	  // Define default frame names as defined by REP 120:
-	  // http://www.ros.org/reps/rep-0120.html
-	  waistJointName_ ("base_footprint_joint"),
-	  chestJointName_ ("torso_lift_joint"),
-	  leftWristJointName_ ("l_gripper_joint"),
-	  rightWristJointName_ ("r_gripper_joint"),
-	  leftHandJointName_ ("l_hand"),
-	  rightHandJointName_ ("r_hand"),
-	  leftAnkleJointName_ ("l_ankle"),
-	  rightAnkleJointName_ ("r_ankle"),
-	  leftFootJointName_ ("l_foot"),
-	  rightFootJointName_ ("r_foot"),
-	  gazeJointName_ ("gaze")
+	  waistJointName_ (),
+	  chestJointName_ (),
+	  leftWristJointName_ (),
+	  rightWristJointName_ (),
+	  leftHandJointName_ (),
+	  rightHandJointName_ (),
+	  leftAnkleJointName_ (),
+	  rightAnkleJointName_ (),
+	  leftFootJointName_ (),
+	  rightFootJointName_ (),
+	  gazeJointName_ ()
       {}
 
       Parser::~Parser ()
@@ -181,6 +178,8 @@ namespace jrl
 	if (!model_.initString (robotDescription))
 	  throw std::runtime_error ("failed to open URDF file."
 				    " Is the filename location correct?");
+
+	findSpecialJoints ();
 
 	// Look for actuated joints into the urdf model tree.
 	parseActuatedJoints (rootJointName);
@@ -226,6 +225,35 @@ namespace jrl
 	//FIXME: disabled for now as jrl-dynamics anchor support is buggy.
 	robot_->initialize();
 	return robot_;
+      }
+
+      void
+      Parser::findSpecialJoint (const std::string& repName, std::string& jointName)
+      {
+	UrdfLinkPtrType linkPtr = model_.links_[repName];
+	if (linkPtr)
+	  {
+	    UrdfJointPtrType joint = linkPtr->parent_joint;
+	    if (joint)
+	      jointName = joint->name;
+	  }
+      }
+
+      void
+      Parser::findSpecialJoints ()
+      {
+	findSpecialJoint ("base_link", waistJointName_);
+	findSpecialJoint ("torso", chestJointName_);
+	findSpecialJoint ("l_wrist", leftWristJointName_);
+	findSpecialJoint ("r_wrist", rightWristJointName_);
+	findSpecialJoint ("l_gripper", leftHandJointName_);
+	findSpecialJoint ("r_gripper", rightHandJointName_);
+	findSpecialJoint ("l_ankle", leftAnkleJointName_);
+	findSpecialJoint ("r_ankle", rightAnkleJointName_);
+	findSpecialJoint ("l_sole", leftFootJointName_);
+	findSpecialJoint ("r_sole", rightFootJointName_);
+	findSpecialJoint ("gaze", gazeJointName_);
+	//FIXME: we are missing toes in abstract-robot-dynamics for now.
       }
 
       void

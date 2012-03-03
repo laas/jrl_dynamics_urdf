@@ -92,6 +92,17 @@ namespace jrl
 		     const std::string& rootJointName);
 
       protected:
+	/// \brief Find special joints using REP 120.
+	///
+	/// This is not direct as abstract-robot-dynamics needs
+	/// joints where as REP 120 deals with frames/robot links.
+	/// We have to use the REP naming standard to identify the
+	/// links and then retrieve the attached joints name.
+	void findSpecialJoints ();
+
+	/// \brief Retrieve joint name attached to a particular link.
+	void findSpecialJoint (const std::string& linkName, std::string& jointName);
+
 	void
 	parseActuatedJoints (const std::string rootJointName);
 
