@@ -57,10 +57,66 @@ void displayBody (CjrlBody* body, const std::string& prefix = "")
 }
 
 void displayHand (CjrlHand* hand, const std::string& prefix = "")
-{}
+{
+  static const char* appendToPrefix = " ";
+  std::string newPrefix = prefix + appendToPrefix;
+
+  if (!hand)
+    {
+      std::cout
+	<< newPrefix << "null pointer" << std::endl;
+      return;
+    }
+
+  vector3d center;
+  hand->getCenter (center);
+
+  vector3d thumbAxis;
+  hand->getThumbAxis (thumbAxis);
+
+  vector3d foreFingerAxis;
+  hand->getForeFingerAxis (foreFingerAxis);
+
+  vector3d palmNormal;
+  hand->getPalmNormal (palmNormal);
+
+  std::cout
+    << newPrefix << "- associated wrist: " << hand->associatedWrist ()
+    << std::endl
+    << newPrefix << "- thumb axis: " << thumbAxis
+    << std::endl
+    << newPrefix << "- fore finger axis: " << foreFingerAxis
+    << std::endl
+    << newPrefix << "- palm normal: " << palmNormal
+    << std::endl;
+}
 
 void displayFoot (CjrlFoot* foot, const std::string& prefix = "")
-{}
+{
+  static const char* appendToPrefix = " ";
+  std::string newPrefix = prefix + appendToPrefix;
+
+  if (!foot)
+    {
+      std::cout
+	<< newPrefix << "null pointer" << std::endl;
+      return;
+    }
+  vector3d anklePosition;
+  foot->getAnklePositionInLocalFrame (anklePosition);
+
+  double soleLength = 0.;
+  double soleWidth = 0.;
+  foot->getSoleSize (soleLength, soleWidth);
+
+  std::cout
+    << newPrefix << "- associated ankle: " << foot->associatedAnkle ()
+    << std::endl
+    << newPrefix << "- ankle position in local frame: " << anklePosition
+    << std::endl
+    << newPrefix << "- sole size: " << soleLength << " " << soleWidth
+    << std::endl;
+}
 
 void displayJoint (CjrlJoint* joint, const std::string& prefix = "")
 {
@@ -77,7 +133,15 @@ void displayJoint (CjrlJoint* joint, const std::string& prefix = "")
   std::cout
     << newPrefix << "- ptr: " << joint << std::endl
     << newPrefix << "- name: " << joint->getName () << std::endl
-    << newPrefix << "- rank: " << joint->rankInConfiguration () << std::endl
+    << newPrefix << "- rank: " ;
+
+  if (joint->numberDof () > 0)
+    std::cout << joint->rankInConfiguration ();
+  else
+    std::cout << "none";
+
+  std::cout
+    << std::endl
     << newPrefix << "- parent (ptr): " << joint->parentJoint () << std::endl
     << newPrefix << "- dof(s): " << joint->numberDof () << std::endl;
   for (unsigned i = 0; i < joint->numberDof (); ++i)

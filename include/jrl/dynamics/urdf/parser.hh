@@ -122,6 +122,8 @@ namespace jrl
 	matrix4d getPoseInReferenceFrame(const std::string& referenceJoint,
 					 const std::string& currentJoint);
 	matrix4d poseToMatrix(::urdf::Pose p);
+
+	void fillHandsAndFeet ();
       private:
 	::urdf::Model model_;
 	CjrlHumanoidDynamicRobot* robot_;

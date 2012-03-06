@@ -234,6 +234,8 @@ namespace jrl
 	// Add corresponding body (link) to each joint.
 	addBodiesToJoints();
 
+	fillHandsAndFeet ();
+
 	//FIXME: disabled for now as jrl-dynamics anchor support is buggy.
 	robot_->initialize();
 	return robot_;
@@ -423,34 +425,6 @@ namespace jrl
 		<< "WARNING: missing inertial information in model"
 		<< std::endl;
 
-	    CjrlJoint* jrlJoint = it->second;
-	    if (jrlJoint
-		&& (joint->name == leftHandJointName_
-		    || joint->name == rightHandJointName_))
-	      {
-		HandPtrType hand = factory_.createHand (jrlJoint);
-
-		//FIXME: parse additional data here
-
-		if (joint->name == leftHandJointName_)
-		  robot_->leftHand (hand);
-		else
-		  robot_->rightHand (hand);
-	      }
-	    if (jrlJoint
-		&& (joint->name == leftFootJointName_
-		    || joint->name == rightFootJointName_))
-	      {
-		FootPtrType foot = factory_.createFoot (jrlJoint);
-
-		//FIXME: parse additional data here
-
-		if (joint->name == leftFootJointName_)
-		  robot_->leftFoot (foot);
-		else
-		  robot_->rightFoot (foot);
-	      }
-
 	    // Create body and fill its fields..
 	    BodyPtrType body = factory_.createBody ();
 	    body->mass (mass);
@@ -542,7 +516,8 @@ namespace jrl
 	return transform;
       }
 
-      matrix4d Parser::poseToMatrix(::urdf::Pose p)
+      matrix4d
+      Parser::poseToMatrix(::urdf::Pose p)
       {
 	matrix4d t;
 
@@ -564,6 +539,81 @@ namespace jrl
 
 	return t;
       }
+
+      void
+      Parser::fillHandsAndFeet ()
+      {
+	MapJrlJoint::const_iterator leftHand =
+	  jointsMap_.find (leftHandJointName_);
+	MapJrlJoint::const_iterator rightHand =
+	  jointsMap_.find (rightHandJointName_);
+
+	MapJrlJoint::const_iterator leftFoot =
+	  jointsMap_.find (leftFootJointName_);
+	MapJrlJoint::const_iterator rightFoot =
+	  jointsMap_.find (rightFootJointName_);
+	MapJrlJoint::const_iterator leftAnkle =
+	  jointsMap_.find (leftAnkleJointName_);
+	MapJrlJoint::const_iterator rightAnkle =
+	  jointsMap_.find (rightAnkleJointName_);
+
+	if (leftHand != jointsMap_.end ())
+	  {
+	    HandPtrType hand = factory_.createHand (leftHand->second);
+	    robot_->leftHand (hand);
+	  }
+
+	if (rightHand != jointsMap_.end ())
+	  {
+	    HandPtrType hand = factory_.createHand (rightHand->second);
+	    robot_->rightHand (hand);
+	  }
+
+	if (leftFoot != jointsMap_.end ())
+	  {
+	    FootPtrType foot = factory_.createFoot (leftFoot->second);
+
+	    // Compute ankle position in local frame.
+	    matrix4d anklePositionInLocalFrame;
+	    anklePositionInLocalFrame.setIdentity ();
+	    if (leftAnkle != jointsMap_.end ())
+	      {
+		matrix4d ankleInv;
+		leftAnkle->second->initialPosition ().Inversion (ankleInv);
+		anklePositionInLocalFrame =
+		  leftFoot->second->initialPosition () * ankleInv;
+	      }
+	    vector3d v (anklePositionInLocalFrame (0, 3),
+			anklePositionInLocalFrame (1, 3),
+			anklePositionInLocalFrame (2, 3));
+	    foot->setAnklePositionInLocalFrame (v);
+
+	    robot_->leftFoot (foot);
+	  }
+
+	if (rightFoot != jointsMap_.end ())
+	  {
+	    FootPtrType foot = factory_.createFoot (rightFoot->second);
+
+	    // Compute ankle position in local frame.
+	    matrix4d anklePositionInLocalFrame;
+	    anklePositionInLocalFrame.setIdentity ();
+	    if (rightAnkle != jointsMap_.end ())
+	      {
+		matrix4d ankleInv;
+		rightAnkle->second->initialPosition ().Inversion (ankleInv);
+		anklePositionInLocalFrame =
+		  rightFoot->second->initialPosition () * ankleInv;
+	      }
+	    vector3d v (anklePositionInLocalFrame (0, 3),
+			anklePositionInLocalFrame (1, 3),
+			anklePositionInLocalFrame (2, 3));
+	    foot->setAnklePositionInLocalFrame (v);
+
+	    robot_->rightFoot (foot);
+	  }
+      }
+
     } // end of namespace urdf.
   } // end of namespace dynamics.
 } // end of namespace  jrl.
