@@ -42,6 +42,9 @@ namespace jrl
 			 const Parser::UrdfJointLimitsPtrType& limits,
 			 dynamicsJRLJapan::ObjectFactory& factory)
       {
+	if (jointsMap.find (name) != jointsMap.end ())
+	  throw std::runtime_error ("duplicated rotation joint");
+
 	CjrlJoint* joint = factory.createJointRotation (position);
 	joint->setName (name);
 	if (limits)
@@ -74,6 +77,9 @@ namespace jrl
 			    const Parser::UrdfJointLimitsPtrType& limits,
 			    dynamicsJRLJapan::ObjectFactory& factory)
       {
+	if (jointsMap.find (name) != jointsMap.end ())
+	  throw std::runtime_error ("duplicated translation joint");
+
 	CjrlJoint* joint = factory.createJointTranslation (position);
 	joint->setName (name);
 	if (limits)
@@ -93,6 +99,9 @@ namespace jrl
 			  const std::string& name,
 			  dynamicsJRLJapan::ObjectFactory& factory)
       {
+	if (jointsMap.find (name) != jointsMap.end ())
+	  throw std::runtime_error ("duplicated free flyer joint");
+
 	CjrlJoint* joint = factory.createJointFreeflyer (position);
 	joint->setName (name);
 	jointsMap[name] = joint;
@@ -105,6 +114,9 @@ namespace jrl
 		       const std::string& name,
 		       dynamicsJRLJapan::ObjectFactory& factory)
       {
+	if (jointsMap.find (name) != jointsMap.end ())
+	  throw std::runtime_error ("duplicated anchor joint");
+
 	CjrlJoint* joint = factory.createJointAnchor (position);
 	joint->setName (name);
 	jointsMap[name] = joint;
