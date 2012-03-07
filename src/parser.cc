@@ -560,6 +560,15 @@ namespace jrl
 			 foot_M_ankle (2, 3));
       }
 
+      namespace
+      {
+	vector3d
+	vector4dTo3d (vector4d v)
+	{
+	  return vector3d (v[0], v[1], v[2]);
+	}
+      } // end of anonymous namespace.
+
       void
       Parser::computeHandsInformation
       (MapJrlJoint::const_iterator& hand,
@@ -581,13 +590,12 @@ namespace jrl
 	for (unsigned i = 0; i < 3; ++i)
 	  center[i] = wrist_M_hand (i, 3);
 
-	//FIXME: fill other fields properly.
-	for (unsigned i = 0; i < 3; ++i)
-	  {
-	    thumbAxis[i] = 0.;
-	    foreFingerAxis[i] = 0.;
-	    palmNormal[i] = 0.;
-	  }
+	thumbAxis = vector4dTo3d
+	  (wrist_M_hand * vector4d (0., 0., 1., 1.));
+	foreFingerAxis = vector4dTo3d
+	  (wrist_M_hand * vector4d (1., 0., 0., 1.));
+	palmNormal = vector4dTo3d
+	  (wrist_M_hand * vector4d (0., 1., 0., 1.));
       }
 
       void
