@@ -123,6 +123,19 @@ namespace jrl
 					 const std::string& currentJoint);
 	matrix4d poseToMatrix(::urdf::Pose p);
 
+	vector3d
+	computeAnklePositionInLocalFrame (MapJrlJoint::const_iterator& foot,
+					  MapJrlJoint::const_iterator& ankle)
+	  const;
+	void
+	computeHandsInformation
+	(MapJrlJoint::const_iterator& hand,
+	 MapJrlJoint::const_iterator& wrist,
+	 vector3d& center,
+	 vector3d& thumbAxis,
+	 vector3d& foreFingerAxis,
+	 vector3d& palmNormal) const;
+
 	void fillHandsAndFeet ();
       private:
 	::urdf::Model model_;

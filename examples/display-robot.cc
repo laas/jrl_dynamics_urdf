@@ -83,6 +83,8 @@ void displayHand (CjrlHand* hand, const std::string& prefix = "")
   std::cout
     << newPrefix << "- associated wrist: " << hand->associatedWrist ()
     << std::endl
+    << newPrefix << "- center: " << center
+    << std::endl
     << newPrefix << "- thumb axis: " << thumbAxis
     << std::endl
     << newPrefix << "- fore finger axis: " << foreFingerAxis

@@ -234,10 +234,12 @@ namespace jrl
 	// Add corresponding body (link) to each joint.
 	addBodiesToJoints();
 
+	robot_->initialize();
+
+	// Here we need to use joints initial positions. Make sure to
+	// call this *after* initializating the structure.
 	fillHandsAndFeet ();
 
-	//FIXME: disabled for now as jrl-dynamics anchor support is buggy.
-	robot_->initialize();
 	return robot_;
       }
 
@@ -256,7 +258,7 @@ namespace jrl
       void
       Parser::findSpecialJoints ()
       {
-	findSpecialJoint ("base_link", waistJointName_);
+	findSpecialJoint ("BODY", waistJointName_);
 	findSpecialJoint ("torso", chestJointName_);
 	findSpecialJoint ("l_wrist", leftWristJointName_);
 	findSpecialJoint ("r_wrist", rightWristJointName_);
@@ -540,6 +542,54 @@ namespace jrl
 	return t;
       }
 
+      vector3d
+      Parser::computeAnklePositionInLocalFrame (MapJrlJoint::const_iterator& foot,
+						MapJrlJoint::const_iterator& ankle)
+	const
+      {
+	matrix4d world_M_foot =
+	  foot->second->initialPosition ();
+	matrix4d world_M_ankle =
+	  ankle->second->initialPosition ();
+	matrix4d foot_M_world;
+	world_M_foot.Inversion (foot_M_world);
+
+	matrix4d foot_M_ankle = foot_M_world * world_M_ankle;
+	return vector3d (foot_M_ankle (0, 3),
+			 foot_M_ankle (1, 3),
+			 foot_M_ankle (2, 3));
+      }
+
+      void
+      Parser::computeHandsInformation
+      (MapJrlJoint::const_iterator& hand,
+       MapJrlJoint::const_iterator& wrist,
+       vector3d& center,
+       vector3d& thumbAxis,
+       vector3d& foreFingerAxis,
+       vector3d& palmNormal) const
+      {
+	matrix4d world_M_hand =
+	  hand->second->initialPosition ();
+	matrix4d world_M_wrist =
+	  wrist->second->initialPosition ();
+	matrix4d wrist_M_world;
+	world_M_wrist.Inversion (wrist_M_world);
+
+	matrix4d wrist_M_hand = wrist_M_world * world_M_hand;
+
+	for (unsigned i = 0; i < 3; ++i)
+	  center[i] = wrist_M_hand (i, 3);
+
+	//FIXME: fill other fields properly.
+	for (unsigned i = 0; i < 3; ++i)
+	  {
+	    thumbAxis[i] = 0.;
+	    foreFingerAxis[i] = 0.;
+	    palmNormal[i] = 0.;
+	  }
+      }
+
       void
       Parser::fillHandsAndFeet ()
       {
@@ -547,6 +597,10 @@ namespace jrl
 	  jointsMap_.find (leftHandJointName_);
 	MapJrlJoint::const_iterator rightHand =
 	  jointsMap_.find (rightHandJointName_);
+	MapJrlJoint::const_iterator leftWrist =
+	  jointsMap_.find (leftWristJointName_);
+	MapJrlJoint::const_iterator rightWrist =
+	  jointsMap_.find (rightWristJointName_);
 
 	MapJrlJoint::const_iterator leftFoot =
 	  jointsMap_.find (leftFootJointName_);
@@ -557,58 +611,67 @@ namespace jrl
 	MapJrlJoint::const_iterator rightAnkle =
 	  jointsMap_.find (rightAnkleJointName_);
 
-	if (leftHand != jointsMap_.end ())
+	if (leftHand != jointsMap_.end () && leftWrist != jointsMap_.end ())
 	  {
-	    HandPtrType hand = factory_.createHand (leftHand->second);
+	    HandPtrType hand = factory_.createHand (leftWrist->second);
+
+	    vector3d center (0., 0., 0.);
+	    vector3d thumbAxis (0., 0., 0.);
+	    vector3d foreFingerAxis (0., 0., 0.);
+	    vector3d palmNormal (0., 0., 0.);
+
+	    computeHandsInformation
+	      (leftHand, leftWrist,
+	       center, thumbAxis, foreFingerAxis, palmNormal);
+
+	    hand->setCenter (center);
+	    hand->setThumbAxis (thumbAxis);
+	    hand->setForeFingerAxis (foreFingerAxis);
+	    hand->setPalmNormal (palmNormal);
 	    robot_->leftHand (hand);
 	  }
 
-	if (rightHand != jointsMap_.end ())
+	if (rightHand != jointsMap_.end () && rightWrist != jointsMap_.end ())
 	  {
-	    HandPtrType hand = factory_.createHand (rightHand->second);
+	    HandPtrType hand = factory_.createHand (rightWrist->second);
+
+	    vector3d center (0., 0., 0.);
+	    vector3d thumbAxis (0., 0., 0.);
+	    vector3d foreFingerAxis (0., 0., 0.);
+	    vector3d palmNormal (0., 0., 0.);
+
+	    computeHandsInformation
+	      (leftHand, leftWrist,
+	       center, thumbAxis, foreFingerAxis, palmNormal);
+
+	    hand->setCenter (center);
+	    hand->setThumbAxis (thumbAxis);
+	    hand->setForeFingerAxis (foreFingerAxis);
+	    hand->setPalmNormal (palmNormal);
+
 	    robot_->rightHand (hand);
 	  }
 
-	if (leftFoot != jointsMap_.end ())
+	if (leftFoot != jointsMap_.end () && leftAnkle != jointsMap_.end ())
 	  {
-	    FootPtrType foot = factory_.createFoot (leftFoot->second);
+	    FootPtrType foot = factory_.createFoot (leftAnkle->second);
+	    foot->setAnklePositionInLocalFrame
+	      (computeAnklePositionInLocalFrame (leftFoot, leftAnkle));
 
-	    // Compute ankle position in local frame.
-	    matrix4d anklePositionInLocalFrame;
-	    anklePositionInLocalFrame.setIdentity ();
-	    if (leftAnkle != jointsMap_.end ())
-	      {
-		matrix4d ankleInv;
-		leftAnkle->second->initialPosition ().Inversion (ankleInv);
-		anklePositionInLocalFrame =
-		  leftFoot->second->initialPosition () * ankleInv;
-	      }
-	    vector3d v (anklePositionInLocalFrame (0, 3),
-			anklePositionInLocalFrame (1, 3),
-			anklePositionInLocalFrame (2, 3));
-	    foot->setAnklePositionInLocalFrame (v);
+	    //FIXME: to be determined using robot contact points definition.
+	    foot->setSoleSize (0., 0.);
 
 	    robot_->leftFoot (foot);
 	  }
 
-	if (rightFoot != jointsMap_.end ())
+	if (rightFoot != jointsMap_.end () && rightAnkle != jointsMap_.end ())
 	  {
-	    FootPtrType foot = factory_.createFoot (rightFoot->second);
+	    FootPtrType foot = factory_.createFoot (rightAnkle->second);
+	    foot->setAnklePositionInLocalFrame
+	      (computeAnklePositionInLocalFrame (rightFoot, rightAnkle));
 
-	    // Compute ankle position in local frame.
-	    matrix4d anklePositionInLocalFrame;
-	    anklePositionInLocalFrame.setIdentity ();
-	    if (rightAnkle != jointsMap_.end ())
-	      {
-		matrix4d ankleInv;
-		rightAnkle->second->initialPosition ().Inversion (ankleInv);
-		anklePositionInLocalFrame =
-		  rightFoot->second->initialPosition () * ankleInv;
-	      }
-	    vector3d v (anklePositionInLocalFrame (0, 3),
-			anklePositionInLocalFrame (1, 3),
-			anklePositionInLocalFrame (2, 3));
-	    foot->setAnklePositionInLocalFrame (v);
+	    //FIXME: to be determined using robot contact points definition.
+	    foot->setSoleSize (0., 0.);
 
 	    robot_->rightFoot (foot);
 	  }
