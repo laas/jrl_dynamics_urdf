@@ -12,7 +12,7 @@
   <export>
     <cpp
        cflags="`rosboost-cfg --cflags` -DBOOST_FILESYSTEM_VERSION=2 -I${prefix}/include"
-       lflags="-L${prefix}/lib -ljrl_dynamics_urdf"
+       lflags="-L${prefix}/lib -ljrl_dynamics_urdf -Wl,-rpath,${prefix}/lib"
        />
   </export>
 
