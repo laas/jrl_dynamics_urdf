@@ -204,6 +204,7 @@ void displayRobot (CjrlHumanoidDynamicRobot* robot)
   std::cout << " - gaze: " << robot->gazeJoint () << std::endl
 	    << std::endl
 	    << "Dynamic robot:" << std::endl
+	    << " - total dof(s): " << robot->numberDof () << std::endl
 	    << " - root joint: " << std::endl;
   displayJoint (robot->rootJoint ());
   displayActuatedJoints (robot->getActuatedJoints ());
