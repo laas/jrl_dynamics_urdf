@@ -81,8 +81,19 @@ namespace jrl
 	virtual ~Parser ();
 
 	/// \brief Parse an URDF file and return a humanoid robot.
+	///
+	/// The URDF file location must use the resource retriever format.
+	/// For instance, the following strings are allowed:
+	/// - package://myPackage/robot.urdf
+	/// - file:///tmp/robot.urdf
+	/// - http://mywebsite.com/robot.urdf
+	///
+	/// See resource_retriever documentation for more information.
+	///
+	/// \param resourceName resource name using the
+	/// resource_retriever format.
 	CjrlHumanoidDynamicRobot*
-	parse (const std::string& filename,
+	parse (const std::string& resourceName,
 	       const std::string& rootJointName);
 
 	/// \brief Parse an URDF sent as a stream and return a

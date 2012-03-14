@@ -1,10 +1,2 @@
 #!/bin/sh
-
-HRP2_MECHANISMS_MODEL=`rospack find hrp2_14_description`
-if test x$HRP2_MECHANISMS_MODEL = x; then
-    echo "failed to find HRP-2 model. Is hrp2_14_description installed" \
-	"and available in your ROS_PACKAGE_PATH?"
-    echo "IMPORTANT: hrp-2 model is private and only available to LAAS users."
-    return 1
-fi
-rosrun jrl_dynamics_urdf display-robot $HRP2_MECHANISMS_MODEL/urdf/hrp2.urdf
+rosrun jrl_dynamics_urdf display-robot package://hrp2_14_description/urdf/hrp2.urdf

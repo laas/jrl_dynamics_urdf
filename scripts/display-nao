@@ -15,5 +15,5 @@ fi
 
 TMP_FILE=`mktemp nao.udf.XXXXXXXXXX`
 rosrun xacro xacro.py $NAO_DESCRIPTION_MODEL/urdf/nao_robot.urdf.xacro > $TMP_FILE
-rosrun jrl_dynamics_urdf display-robot $TMP_FILE
+rosrun jrl_dynamics_urdf display-robot file://$TMP_FILE
 rm -f $TMP_FILE

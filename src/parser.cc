@@ -26,6 +26,8 @@
 #include <LinearMath/btMatrix3x3.h>
 #include <LinearMath/btQuaternion.h>
 
+#include <resource_retriever/retriever.h>
+
 #include "jrl/dynamics/urdf/parser.hh"
 
 namespace jrl
@@ -160,18 +162,15 @@ namespace jrl
       Parser::parse (const std::string& filename,
 		     const std::string& rootJointName)
       {
-	boost::filesystem::fstream stream
-	  (filename, boost::filesystem::fstream::in);
+	resource_retriever::Retriever resourceRetriever;
+
+	resource_retriever::MemoryResource resource =
+	  resourceRetriever.get(filename);
 	std::string robotDescription;
-	if (!stream.good ())
-	  throw std::runtime_error ("failed to open robot description");
-	while (stream)
-	  {
-	    std::string str;
-	    std::getline (stream, str);
-	    robotDescription += str;
-	    robotDescription += "\n";
-	  }
+	robotDescription.resize(resource.size);
+	unsigned i = 0;
+	for (; i < resource.size; ++i)
+	  robotDescription[i] = resource.data.get()[i];
 	return parseStream (robotDescription, rootJointName);
       }
 
