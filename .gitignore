@@ -10,3 +10,10 @@ srv_gen/
 AccelerationCoM.dat
 Accelerations.dat
 CoMs.dat
+Makefile
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+tests/CMakeFiles/
+tests/Makefile
+tests/cmake_install.cmake
