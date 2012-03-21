@@ -127,7 +127,10 @@ namespace jrl
 	void
 	parseJoints (const std::string rootJointName);
 
+	/// \brief Get actuated joints.
 	std::vector<CjrlJoint*> actuatedJoints();
+
+	/// \brief Connect recursively joints to their children.
 	void connectJoints(CjrlJoint* rootJoint);
 	void addBodiesToJoints();
 
