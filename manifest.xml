@@ -23,7 +23,6 @@
 
   <depend package="bullet"/>
 
-  <depend package="roscpp"/>
   <depend package="urdf"/>
   <depend package="urdf_interface"/>
   <depend package="resource_retriever"/>
