@@ -132,6 +132,8 @@ namespace jrl
 
 	/// \brief Connect recursively joints to their children.
 	void connectJoints(CjrlJoint* rootJoint);
+
+	/// \brief Parse bodies and add them to joints.
 	void addBodiesToJoints();
 
 	void getChildrenJoint (const std::string& jointName,
