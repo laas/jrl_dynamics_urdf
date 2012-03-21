@@ -27,8 +27,6 @@
 # include <abstract-robot-dynamics/humanoid-dynamic-robot.hh>
 # include <jrl/dynamics/dynamicsfactory.hh>
 
-class CjrlHumanoidDynamicRobot;
-
 namespace jrl
 {
   namespace dynamics
@@ -79,6 +77,10 @@ namespace jrl
 	explicit Parser ();
 	/// \brief Destructor.
 	virtual ~Parser ();
+
+	/// \brief Get map of created abstract robot dynamics
+	/// compatible joints.
+	MapJrlJoint mapJrlJoint () const;
 
 	/// \brief Parse an URDF file and return a humanoid robot.
 	///

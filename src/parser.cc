@@ -158,6 +158,12 @@ namespace jrl
       Parser::~Parser ()
       {}
 
+      Parser::MapJrlJoint
+      Parser::mapJrlJoint () const
+      {
+	return jointsMap_;
+      }
+
       CjrlHumanoidDynamicRobot*
       Parser::parse (const std::string& filename,
 		     const std::string& rootJointName)
