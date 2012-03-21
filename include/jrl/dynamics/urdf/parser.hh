@@ -78,6 +78,10 @@ namespace jrl
 	/// \brief Destructor.
 	virtual ~Parser ();
 
+	/// \brief Get parsed URDF model.
+	::urdf::Model
+	urdfModel () const;
+
 	/// \brief Get map of created abstract robot dynamics
 	/// compatible joints.
 	MapJrlJoint mapJrlJoint () const;

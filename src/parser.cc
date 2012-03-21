@@ -158,6 +158,12 @@ namespace jrl
       Parser::~Parser ()
       {}
 
+      ::urdf::Model
+      Parser::urdfModel () const
+      {
+	return model_;
+      }
+
       Parser::MapJrlJoint
       Parser::mapJrlJoint () const
       {
