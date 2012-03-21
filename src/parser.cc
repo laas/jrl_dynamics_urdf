@@ -205,7 +205,7 @@ namespace jrl
 	findSpecialJoints ();
 
 	// Look for actuated joints into the urdf model tree.
-	parseActuatedJoints (rootJointName);
+	parseJoints (rootJointName);
 	if (!rootJoint_)
 	  throw std::runtime_error ("failed to parse actuated joints");
 
@@ -285,7 +285,7 @@ namespace jrl
       }
 
       void
-      Parser::parseActuatedJoints (const std::string rootJointName)
+      Parser::parseJoints (const std::string rootJointName)
       {
 	// Create free floating joint.
 	// FIXME: position set to identity for now.

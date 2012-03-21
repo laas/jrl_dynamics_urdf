@@ -120,8 +120,12 @@ namespace jrl
 	/// \brief Retrieve joint name attached to a particular link.
 	void findSpecialJoint (const std::string& linkName, std::string& jointName);
 
+	/// \brief Parse URDF model and get joints.
+	///
+	/// Each joint in the URDF model is used to build the
+	/// corresponding CjrlJoint object.
 	void
-	parseActuatedJoints (const std::string rootJointName);
+	parseJoints (const std::string rootJointName);
 
 	std::vector<CjrlJoint*> actuatedJoints();
 	void connectJoints(CjrlJoint* rootJoint);
