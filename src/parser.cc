@@ -36,6 +36,57 @@ namespace jrl
   {
     namespace urdf
     {
+      namespace
+      {
+	/// \brief Convert joint orientation to standard
+	/// jrl-dynamics accepted orientation.
+	///
+	/// abstract-robot-dynamics do not contain any information
+	/// about around which axis a rotation joint rotates.
+	/// On the opposite, it makes the assumption it is around the X
+	/// axis. We have to make sure this is the case here.
+	///
+	/// We use Gram-Schmidt process to compute the rotation matrix.
+	///
+	/// [1] http://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process
+	matrix4d
+	normalizeFrameOrientation (Parser::UrdfJointConstPtrType urdfJoint)
+	{
+	  if (!urdfJoint)
+	    throw std::runtime_error
+	      ("invalid joint in normalizeFrameOrientation");
+	  matrix4d result;
+	  result.setIdentity ();
+
+	  vector3d x (urdfJoint->axis.x,
+		      urdfJoint->axis.y,
+		      urdfJoint->axis.z);
+	  x.normalize ();
+
+	  vector3d y (0., 0., 0.);
+	  vector3d z (0., 0., 0.);
+
+	  unsigned smallestComponent = 0;
+	  for (unsigned i = 0; i < 3; ++i)
+	    if (std::fabs(x[i]) < std::fabs(x[smallestComponent]))
+	      smallestComponent = i;
+
+	  y[smallestComponent] = 1.;
+	  z = x ^ y;
+	  y = z ^ x;
+	  // (x, y, z) is an orthonormal basis.
+
+	  for (unsigned i = 0; i < 3; ++i)
+	    {
+	      result (i, 0) = x[i];
+	      result (i, 1) = y[i];
+	      result (i, 2) = z[i];
+	    }
+
+	  return result;
+	}
+      } // end of anonymous namespace.
+
 
       CjrlJoint*
       makeJointRotation (Parser::MapJrlJoint& jointsMap,
@@ -306,6 +357,11 @@ namespace jrl
 	    position =
 	      getPoseInReferenceFrame("base_footprint_joint", it->first);
 
+	    // Normalize orientation if this is a rotation joint.
+	    UrdfJointConstPtrType joint = model_.getJoint (it->first);
+	    if (joint->type == ::urdf::Joint::REVOLUTE)
+	      position = position * normalizeFrameOrientation (joint);
+
 	    switch(it->second->type)
 	      {
 	      case ::urdf::Joint::UNKNOWN:
@@ -493,58 +549,6 @@ namespace jrl
 	  }
       }
 
-      namespace
-      {
-	/// \brief Convert joint orientation to standard
-	/// jrl-dynamics accepted orientation.
-	///
-	/// abstract-robot-dynamics do not contain any information
-	/// about around which axis a rotation joint rotates.
-	/// On the opposite, it makes the assumption it is around the X
-	/// axis. We have to make sure this is the case here.
-	///
-	/// We use Gram-Schmidt process to compute the rotation matrix.
-	///
-	/// [1] http://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process
-	matrix4d
-	normalizeFrameOrientation (Parser::UrdfJointConstPtrType urdfJoint)
-	{
-	  if (!urdfJoint)
-	    throw std::runtime_error
-	      ("invalid joint in normalizeFrameOrientation");
-	  matrix4d result;
-	  result.setIdentity ();
-
-	  vector3d x (urdfJoint->axis.x,
-		      urdfJoint->axis.y,
-		      urdfJoint->axis.z);
-	  x.normalize ();
-
-	  vector3d y (0., 0., 0.);
-	  vector3d z (0., 0., 0.);
-
-	  unsigned smallestComponent = 0;
-	  for (unsigned i = 0; i < 3; ++i)
-	    if (std::fabs(x[i]) < std::fabs(x[smallestComponent]))
-	      smallestComponent = i;
-
-	  y[smallestComponent] = 1.;
-	  z = x ^ y;
-	  y = z ^ x;
-	  // (x, y, z) is an orthonormal basis.
-
-	  for (unsigned i = 0; i < 3; ++i)
-	    {
-	      result (i, 0) = x[i];
-	      result (i, 1) = y[i];
-	      result (i, 2) = z[i];
-	    }
-
-	  return result;
-	}
-      } // end of anonymous namespace.
-
-
       matrix4d
       Parser::getPoseInReferenceFrame(const std::string& referenceJointName,
 				      const std::string& currentJointName)
@@ -565,10 +569,6 @@ namespace jrl
 	    joint->parent_to_joint_origin_transform;
 
 	matrix4d transform = poseToMatrix (jointToParentTransform);
-
-	// Normalize orientation if this is a rotation joint.
-	if (joint->type == ::urdf::Joint::REVOLUTE)
-	  transform = normalizeFrameOrientation (joint) * transform;
 
 	// Get parent joint name.
 	std::string parentLinkName = joint->parent_link_name;
