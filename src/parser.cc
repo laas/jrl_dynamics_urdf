@@ -260,10 +260,6 @@ namespace jrl
 	if (!rootJoint_)
 	  throw std::runtime_error ("failed to parse actuated joints");
 
-	// Set model actuated joints.
-	std::vector<CjrlJoint*> actJointsVect = actuatedJoints ();
-	robot_->setActuatedJoints (actJointsVect);
-
 	// Create the kinematic tree.
 	// We iterate over the URDF root joints to connect them to the
 	// root link that we added "manually" before. Then we iterate
@@ -297,6 +293,10 @@ namespace jrl
 	addBodiesToJoints();
 
 	robot_->initialize();
+
+	// Set model actuated joints.
+	std::vector<CjrlJoint*> actJointsVect = actuatedJoints ();
+	robot_->setActuatedJoints (actJointsVect);
 
 	// Here we need to use joints initial positions. Make sure to
 	// call this *after* initializating the structure.
