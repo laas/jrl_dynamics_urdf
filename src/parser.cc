@@ -291,7 +291,7 @@ namespace jrl
 	robot_->rightWrist (findJoint (rightWristJointName_, jointsMap_));
 	robot_->leftAnkle (findJoint (leftAnkleJointName_, jointsMap_));
 	robot_->rightAnkle (findJoint (rightAnkleJointName_, jointsMap_));
-	robot_->gazeJoint (findJoint (rightFootJointName_, jointsMap_));
+	robot_->gazeJoint (findJoint (gazeJointName_, jointsMap_));
 
 	// Add corresponding body (link) to each joint.
 	addBodiesToJoints();
