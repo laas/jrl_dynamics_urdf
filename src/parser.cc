@@ -359,7 +359,9 @@ namespace jrl
 
 	    // Normalize orientation if this is a rotation joint.
 	    UrdfJointConstPtrType joint = model_.getJoint (it->first);
-	    if (joint->type == ::urdf::Joint::REVOLUTE)
+	    if (joint->type == ::urdf::Joint::REVOLUTE
+		|| joint->type == ::urdf::Joint::CONTINUOUS
+		|| joint->type == ::urdf::Joint::PRISMATIC)
 	      position = position * normalizeFrameOrientation (joint);
 
 	    switch(it->second->type)
