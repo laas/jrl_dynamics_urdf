@@ -1,0 +1,2 @@
+#!/bin/sh
+rosrun jrl_dynamics_urdf display-robot package://romeo_description/urdf/romeo.urdf
