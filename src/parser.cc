@@ -451,19 +451,25 @@ namespace jrl
         for(MapJrlJoint::const_iterator it = jointsMap_.begin();
 	    it != jointsMap_.end(); ++it)
 	  {
+	    UrdfLinkConstPtrType link;
 	    // Retrieve associated URDF joint.
 	    UrdfJointConstPtrType joint = model_.getJoint (it->first);
-	    if (!joint)
-	      continue;
-
-	    // Retrieve joint name.
-	    std::string childLinkName = joint->child_link_name;
-
-	    // Get child link.
-	    UrdfLinkConstPtrType link = model_.getLink (childLinkName);
+	    if (!joint) 
+	      {
+		//Dealing with the Free-Flyer joint, not part of urdf model
+		link = model_.getRoot ();
+	      }
+	    else
+	      {
+		// Retrieve joint name.
+		std::string childLinkName = joint->child_link_name;
+		
+		// Get child link.
+		link = model_.getLink (childLinkName);
+	      }
 	    if (!link)
 	      throw std::runtime_error ("inconsistent model");
-
+	    
 	    // Retrieve inertial information.
 	    boost::shared_ptr< ::urdf::Inertial> inertial =
 	      link->inertial;
