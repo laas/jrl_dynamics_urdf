@@ -38,6 +38,8 @@ namespace jrl
     {
       namespace
       {
+	static const char* rootJointName = "base_joint";
+
 	/// \brief Convert joint orientation to standard
 	/// jrl-dynamics accepted orientation.
 	///
@@ -222,8 +224,7 @@ namespace jrl
       }
 
       CjrlHumanoidDynamicRobot*
-      Parser::parse (const std::string& filename,
-		     const std::string& rootJointName)
+      Parser::parse (const std::string& filename)
       {
 	resource_retriever::Retriever resourceRetriever;
 
@@ -234,12 +235,11 @@ namespace jrl
 	unsigned i = 0;
 	for (; i < resource.size; ++i)
 	  robotDescription[i] = resource.data.get()[i];
-	return parseStream (robotDescription, rootJointName);
+	return parseStream (robotDescription);
       }
 
       CjrlHumanoidDynamicRobot*
-      Parser::parseStream (const std::string& robotDescription,
-			   const std::string& rootJointName)
+      Parser::parseStream (const std::string& robotDescription)
       {
 	// Reset the attributes to avoid problems when loading
 	// multiple robots using the same object.

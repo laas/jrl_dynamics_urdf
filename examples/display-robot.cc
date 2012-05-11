@@ -251,10 +251,10 @@ int main (int argc, char** argv)
 	  usage (argc, argv);
 	  return 1;
 	}
-      robot = parser.parseStream (robotDescription, "base_footprint_joint");
+      robot = parser.parseStream (robotDescription);
     }
   else
-    robot = parser.parse (argv[1], "base_footprint_joint");
+    robot = parser.parse (argv[1]);
 
   if (!robot)
     {

@@ -99,14 +99,12 @@ namespace jrl
 	/// \param resourceName resource name using the
 	/// resource_retriever format.
 	CjrlHumanoidDynamicRobot*
-	parse (const std::string& resourceName,
-	       const std::string& rootJointName);
+	parse (const std::string& resourceName);
 
 	/// \brief Parse an URDF sent as a stream and return a
 	/// humanoid robot.
 	CjrlHumanoidDynamicRobot*
-	parseStream (const std::string& robotDescription,
-		     const std::string& rootJointName);
+	parseStream (const std::string& robotDescription);
 
       protected:
 	/// \brief Find special joints using REP 120.
