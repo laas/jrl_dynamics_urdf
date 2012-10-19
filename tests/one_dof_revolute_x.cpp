@@ -25,16 +25,14 @@
 
 TEST(TestSuite, oneDofRevoluteX)
 {
-  const char* ffJointName = "base_footprint_joint";
   jrl::dynamics::urdf::Parser parser;
   CjrlHumanoidDynamicRobot* robot = parser.parse
-    (TEST_MODEL_DIRECTORY "/one_dof_revolute_x.urdf",
-     ffJointName);
+    ("file://" TEST_MODEL_DIRECTORY "/one_dof_revolute_x.urdf");
 
   CjrlJoint* root = robot->rootJoint ();
   ASSERT_TRUE (root);
   ASSERT_EQ (1, root->countChildJoints());
-  ASSERT_EQ (ffJointName, root->getName());
+  ASSERT_EQ ("base_joint", root->getName());
 
   CjrlJoint* joint = root->childJoint (0);
   ASSERT_TRUE (joint);
