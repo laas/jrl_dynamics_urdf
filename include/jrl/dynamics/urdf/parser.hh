@@ -27,6 +27,8 @@
 # include <abstract-robot-dynamics/humanoid-dynamic-robot.hh>
 # include <jrl/dynamics/dynamicsfactory.hh>
 
+# include "XmlRpcValue.h"
+
 namespace jrl
 {
   namespace dynamics
@@ -57,6 +59,9 @@ namespace jrl
       class Parser
       {
       public:
+      
+	XmlRpc::XmlRpcValue JointsNamesByRank_;
+      
 	typedef boost::shared_ptr< ::urdf::Link> UrdfLinkPtrType;
 	typedef boost::shared_ptr< ::urdf::Joint> UrdfJointPtrType;
 	typedef boost::shared_ptr< ::urdf::JointLimits> UrdfJointLimitsPtrType;
