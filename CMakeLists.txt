@@ -14,6 +14,7 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 # Search for dependencies.
+ADD_REQUIRED_DEPENDENCY("bullet")
 ADD_REQUIRED_DEPENDENCY("jrl-dynamics")
 
 rosbuild_add_boost_directories()
@@ -24,6 +25,7 @@ add_definitions(-DBOOST_FILESYSTEM_VERSION=2)
 rosbuild_add_library(${PROJECT_NAME} src/parser.cc)
 rosbuild_link_boost(${PROJECT_NAME} filesystem system)
 PKG_CONFIG_USE_DEPENDENCY(${PROJECT_NAME} jrl-dynamics)
+PKG_CONFIG_USE_DEPENDENCY(${PROJECT_NAME} bullet)
 
 rosbuild_add_executable(display-robot examples/display-robot.cc)
 target_link_libraries(display-robot ${PROJECT_NAME})

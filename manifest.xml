@@ -19,9 +19,8 @@
 
   <rosdep name="boost" />
   <rosdep name="gtest"/>
+  <rosdep name="bullet"/>
   <rosdep name="jrl-dynamics"/>
-
-  <depend package="bullet"/>
 
   <depend package="urdf"/>
   <depend package="urdf_interface"/>
