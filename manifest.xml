@@ -17,7 +17,6 @@
     <rosdoc config="rosdoc.yaml" />
   </export>
 
-  <depend package="common_rosdeps" />
   <rosdep name="boost" />
   <rosdep name="gtest"/>
   <rosdep name="jrl-dynamics"/>
