@@ -20,7 +20,10 @@
   <rosdep name="boost" />
   <rosdep name="gtest"/>
   <rosdep name="bullet"/>
+
+  <!-- Disable non-standard dependencies for now
   <rosdep name="jrl-dynamics"/>
+  -->
 
   <depend package="urdf"/>
   <depend package="resource_retriever"/>
