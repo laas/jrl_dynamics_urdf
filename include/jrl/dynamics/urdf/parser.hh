@@ -21,7 +21,7 @@
 
 # include <boost/shared_ptr.hpp>
 
-# include <urdf/model.h>
+# include <urdf_model/model.h>
 
 # include <jrl/mal/matrixabstractlayer.hh>
 # include <abstract-robot-dynamics/humanoid-dynamic-robot.hh>
@@ -79,7 +79,7 @@ namespace jrl
 	virtual ~Parser ();
 
 	/// \brief Get parsed URDF model.
-	::urdf::Model
+	boost::shared_ptr< ::urdf::ModelInterface>
 	urdfModel () const;
 
 	/// \brief Get map of created abstract robot dynamics
@@ -162,7 +162,7 @@ namespace jrl
 
 	void fillHandsAndFeet ();
       private:
-	::urdf::Model model_;
+        boost::shared_ptr< ::urdf::ModelInterface> model_;
 	CjrlHumanoidDynamicRobot* robot_;
 	JointPtrType rootJoint_;
 	MapJrlJoint jointsMap_;

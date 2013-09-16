@@ -1,2 +1,2 @@
 #!/bin/sh
-rosrun jrl_dynamics_urdf display-robot package://hrp2_14_description/urdf/hrp2.urdf
+display-robot package://hrp2_14_description/urdf/hrp2.urdf

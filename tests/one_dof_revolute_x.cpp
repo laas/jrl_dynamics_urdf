@@ -16,30 +16,32 @@
 
 #include <cassert>
 #include <cmath>
+#include <boost/test/unit_test.hpp>
+
 #include "jrl/dynamics/urdf/parser.hh"
-#include <gtest/gtest.h>
+
 
 #ifndef TEST_MODEL_DIRECTORY
 # error "TEST_MODEL_DIRECTORY undefined"
 #endif //! TEST_MODEL_DIRECTORY
 
-TEST(TestSuite, oneDofRevoluteX)
+BOOST_AUTO_TEST_CASE (oneDofRevoluteX)
 {
   jrl::dynamics::urdf::Parser parser;
   CjrlHumanoidDynamicRobot* robot = parser.parse
     ("file://" TEST_MODEL_DIRECTORY "/one_dof_revolute_x.urdf");
 
   CjrlJoint* root = robot->rootJoint ();
-  ASSERT_TRUE (root);
-  ASSERT_EQ (1, root->countChildJoints());
-  ASSERT_EQ ("base_joint", root->getName());
+  BOOST_CHECK (root);
+  BOOST_CHECK_EQUAL (1, root->countChildJoints());
+  BOOST_CHECK_EQUAL ("base_joint", root->getName());
 
   CjrlJoint* joint = root->childJoint (0);
-  ASSERT_TRUE (joint);
-  ASSERT_EQ ("joint1", joint->getName());
+  BOOST_CHECK (joint);
+  BOOST_CHECK_EQUAL ("joint1", joint->getName());
 
   // Create robot configuration.
-  const int ndofs = 7;
+  const unsigned ndofs = 7;
   vectorN q (ndofs);
   vectorN dq (ndofs);
   vectorN ddq (ndofs);
@@ -49,18 +51,19 @@ TEST(TestSuite, oneDofRevoluteX)
 
   // Check configuration at zero.
   std::cout << q << std::endl;
-  ASSERT_TRUE (robot->currentConfiguration(q));
-  ASSERT_TRUE (robot->currentVelocity(dq));
-  ASSERT_TRUE (robot->currentAcceleration(ddq));
-  ASSERT_TRUE (robot->computeForwardKinematics());
+  BOOST_CHECK (robot->currentConfiguration(q));
+  BOOST_CHECK (robot->currentVelocity(dq));
+  BOOST_CHECK (robot->currentAcceleration(ddq));
+  BOOST_CHECK (robot->computeForwardKinematics());
 
   matrix4d jointPosition;
 
   jointPosition.setIdentity ();
   for (unsigned i = 0; i < 4; ++i)
     for (unsigned j = 0; j < 4; ++j)
-      ASSERT_EQ(jointPosition (i, j),
-		root->currentTransformation () (i, j));
+      BOOST_CHECK_EQUAL
+	(jointPosition (i, j),
+	 root->currentTransformation () (i, j));
 
   jointPosition.setIdentity ();
   jointPosition (1, 3) = 1.;
@@ -72,17 +75,18 @@ TEST(TestSuite, oneDofRevoluteX)
 
   for (unsigned i = 0; i < 4; ++i)
     for (unsigned j = 0; j < 4; ++j)
-      ASSERT_NEAR (jointPosition (i, j),
-		   joint->currentTransformation () (i, j),
-		   1e-9);
+      BOOST_CHECK_CLOSE
+	(jointPosition (i, j),
+	 joint->currentTransformation () (i, j),
+	 1e-9);
 
   // Check configuration at pi/2.
   q (6) = M_PI / 2.;
   std::cout << q << std::endl;
-  ASSERT_TRUE (robot->currentConfiguration(q));
-  ASSERT_TRUE (robot->currentVelocity(dq));
-  ASSERT_TRUE (robot->currentAcceleration(ddq));
-  ASSERT_TRUE (robot->computeForwardKinematics());
+  BOOST_CHECK (robot->currentConfiguration(q));
+  BOOST_CHECK (robot->currentVelocity(dq));
+  BOOST_CHECK (robot->currentAcceleration(ddq));
+  BOOST_CHECK (robot->computeForwardKinematics());
 
   jointPosition.setIdentity ();
   jointPosition (1, 1) = 0.;
@@ -98,13 +102,8 @@ TEST(TestSuite, oneDofRevoluteX)
 
   for (unsigned i = 0; i < 4; ++i)
     for (unsigned j = 0; j < 4; ++j)
-      ASSERT_NEAR (jointPosition (i, j),
-		   joint->currentTransformation () (i, j),
-		   1e-9);
-}
-
-int main (int argc, char **argv)
-{
-  testing::InitGoogleTest (&argc, argv);
-  return RUN_ALL_TESTS();
+      BOOST_CHECK_CLOSE
+	(jointPosition (i, j),
+	 joint->currentTransformation () (i, j),
+	 1e-9);
 }

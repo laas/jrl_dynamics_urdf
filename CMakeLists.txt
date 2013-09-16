@@ -1,33 +1,59 @@
-cmake_minimum_required(VERSION 2.4.6)
-include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+# Copyright 2013, Thomas Moulard, LAAS-CNRS
+#
+# This file is part of roboptim-core.
+# roboptim-core is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# roboptim-core is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Lesser Public License for more details.
+# You should have received a copy of the GNU Lesser General Public License
+# along with roboptim-core.  If not, see <http://www.gnu.org/licenses/>.
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
 INCLUDE(cmake/base.cmake)
+INCLUDE(cmake/boost.cmake)
+INCLUDE(cmake/lapack.cmake)
+INCLUDE(cmake/eigen.cmake)
 
-#set(ROS_BUILD_TYPE RelWithDebInfo)
-set(ROS_BUILD_TYPE Debug)
+SET(PROJECT_NAME jrl-dynamics-urdf)
+SET(PROJECT_DESCRIPTION "JRL dynamics URDF")
+SET(PROJECT_URL "http://github.com/jrl-umi3218/jrl-dynamics-urdf")
 
-rosbuild_init()
+SET(CXX_DISABLE_WERROR True)
 
-#set the default path for built executables to the "bin" directory
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
-#set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+SET(HEADERS
+  ${CMAKE_SOURCE_DIR}/include/jrl/dynamics/urdf/doc.hh
+  ${CMAKE_SOURCE_DIR}/include/jrl/dynamics/urdf/parser.hh
+  )
+
+SETUP_PROJECT()
+
+# Add main library to pkg-config file.
+PKG_CONFIG_APPEND_LIBS(jrl-dynamics-urdf)
 
 # Search for dependencies.
-ADD_REQUIRED_DEPENDENCY("bullet")
+SEARCH_FOR_BOOST()
+ADD_REQUIRED_DEPENDENCY("jrl-mal")
 ADD_REQUIRED_DEPENDENCY("jrl-dynamics")
+ADD_REQUIRED_DEPENDENCY("urdfdom")
 
-rosbuild_add_boost_directories()
+ADD_REQUIRED_DEPENDENCY("roscpp")
+ADD_REQUIRED_DEPENDENCY("resource_retriever")
+
+# Add Boost path to include directories.
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 
 # Make sure Boost.Filesystem v2 is used.
-add_definitions(-DBOOST_FILESYSTEM_VERSION=2)
+ADD_DEFINITIONS(-DBOOST_FILESYSTEM_VERSION=2)
 
-rosbuild_add_library(${PROJECT_NAME} src/parser.cc)
-rosbuild_link_boost(${PROJECT_NAME} filesystem system)
-PKG_CONFIG_USE_DEPENDENCY(${PROJECT_NAME} jrl-dynamics)
-PKG_CONFIG_USE_DEPENDENCY(${PROJECT_NAME} bullet)
+ADD_SUBDIRECTORY(src)
+ADD_SUBDIRECTORY(examples)
+ADD_SUBDIRECTORY(tests)
 
-rosbuild_add_executable(display-robot examples/display-robot.cc)
-target_link_libraries(display-robot ${PROJECT_NAME})
+HEADER_INSTALL("${HEADERS}")
 
-add_subdirectory(tests)
+SETUP_PROJECT_FINALIZE()

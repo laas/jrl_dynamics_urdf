@@ -13,13 +13,11 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with roboptim-core.  If not, see <http://www.gnu.org/licenses/>.
 
-# Make Boost.Test generates the main function in test cases.
-ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK -DBOOST_TEST_MAIN)
+ADD_LIBRARY(jrl-dynamics-urdf SHARED ${HEADERS} parser.cc)
+PKG_CONFIG_USE_DEPENDENCY(jrl-dynamics-urdf jrl-mal)
+PKG_CONFIG_USE_DEPENDENCY(jrl-dynamics-urdf jrl-dynamics)
+PKG_CONFIG_USE_DEPENDENCY(jrl-dynamics-urdf urdfdom)
+PKG_CONFIG_USE_DEPENDENCY(jrl-dynamics-urdf resource_retriever)
+TARGET_LINK_LIBRARIES(jrl-dynamics-urdf ${Boost_LIBRARIES})
 
-# Set the tests model directory.
-ADD_DEFINITIONS(
-  "-DTEST_MODEL_DIRECTORY=\"${CMAKE_SOURCE_DIRECTORY}/test/models\"")
-
-ADD_EXECUTABLE(one_dof_revolute_x one_dof_revolute_x.cpp)
-PKG_CONFIG_USE_DEPENDENCY(one_dof_revolute_x jrl-mal)
-TARGET_LINK_LIBRARIES(one_dof_revolute_x jrl-dynamics-urdf)
+INSTALL(TARGETS jrl-dynamics-urdf DESTINATION ${CMAKE_INSTALL_LIBDIR})

@@ -210,7 +210,7 @@ void displayRobot (CjrlHumanoidDynamicRobot* robot)
   displayActuatedJoints (robot->getActuatedJoints ());
 }
 
-void usage (int argc, char** argv)
+void usage (int /*argc*/, char** argv)
 {
   std::cerr << "Usage: " << argv[0] << " URDF_MODEL_PATH" << std::endl
 	    << "or:    " << argv[0] << std::endl

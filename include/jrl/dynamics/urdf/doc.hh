@@ -1,6 +1,5 @@
 /**
 \mainpage
-\htmlinclude manifest.html
 
 \b jrl_dynamics_urdf is a jrl-dynamics loader for URDF files.
 

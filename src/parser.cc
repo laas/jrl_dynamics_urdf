@@ -23,10 +23,8 @@
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
 
-#include <LinearMath/btMatrix3x3.h>
-#include <LinearMath/btQuaternion.h>
-
 #include <resource_retriever/retriever.h>
+#include <urdf_parser/urdf_parser.h>
 
 #include "jrl/dynamics/urdf/parser.hh"
 
@@ -211,7 +209,7 @@ namespace jrl
       Parser::~Parser ()
       {}
 
-      ::urdf::Model
+      boost::shared_ptr< ::urdf::ModelInterface>
       Parser::urdfModel () const
       {
 	return model_;
@@ -243,13 +241,14 @@ namespace jrl
       {
 	// Reset the attributes to avoid problems when loading
 	// multiple robots using the same object.
-	model_.clear ();
+	model_.reset ();
 	robot_ = factory_.createHumanoidDynamicRobot ();
 	rootJoint_ = 0;
 	jointsMap_.clear ();
 
 	// Parse urdf model.
-	if (!model_.initString (robotDescription))
+	model_ = ::urdf::parseURDF (robotDescription);
+	if (!model_)
 	  throw std::runtime_error ("failed to open URDF file."
 				    " Is the filename location correct?");
 
@@ -264,7 +263,7 @@ namespace jrl
 	// We iterate over the URDF root joints to connect them to the
 	// root link that we added "manually" before. Then we iterate
 	// in the whole tree using the connectJoints method.
-	boost::shared_ptr<const ::urdf::Link> rootLink = model_.getRoot ();
+	boost::shared_ptr<const ::urdf::Link> rootLink = model_->getRoot ();
 	if (!rootLink)
 	  throw std::runtime_error ("URDF model is missing a root link");
 
@@ -309,7 +308,7 @@ namespace jrl
       Parser::findSpecialJoint (const std::string& repName,
 				std::string& jointName)
       {
-	UrdfLinkPtrType linkPtr = model_.links_[repName];
+	UrdfLinkPtrType linkPtr = model_->links_[repName];
 	if (linkPtr)
 	  {
 	    UrdfJointPtrType joint = linkPtr->parent_joint;
@@ -351,14 +350,14 @@ namespace jrl
 
 	// Iterate through each "true cinematic" joint and create a
 	// corresponding CjrlJoint.
-	for(MapJointType::const_iterator it = model_.joints_.begin();
-	    it != model_.joints_.end(); ++it)
+	for(MapJointType::const_iterator it = model_->joints_.begin();
+	    it != model_->joints_.end(); ++it)
 	  {
 	    position =
 	      getPoseInReferenceFrame("base_footprint_joint", it->first);
 
 	    // Normalize orientation if this is a rotation joint.
-	    UrdfJointConstPtrType joint = model_.getJoint (it->first);
+	    UrdfJointConstPtrType joint = model_->getJoint (it->first);
 	    if (joint->type == ::urdf::Joint::REVOLUTE
 		|| joint->type == ::urdf::Joint::CONTINUOUS
 		|| joint->type == ::urdf::Joint::PRISMATIC)
@@ -408,8 +407,8 @@ namespace jrl
 	typedef std::map<std::string, boost::shared_ptr< ::urdf::Joint > >
 	  jointMap_t;
 
-        for(jointMap_t::const_iterator it = model_.joints_.begin ();
-	    it != model_.joints_.end (); ++it)
+        for(jointMap_t::const_iterator it = model_->joints_.begin ();
+	    it != model_->joints_.end (); ++it)
 	  {
 	    if (!it->second)
 	      throw std::runtime_error ("null joint shared pointer");
@@ -453,23 +452,23 @@ namespace jrl
 	  {
 	    UrdfLinkConstPtrType link;
 	    // Retrieve associated URDF joint.
-	    UrdfJointConstPtrType joint = model_.getJoint (it->first);
-	    if (!joint) 
+	    UrdfJointConstPtrType joint = model_->getJoint (it->first);
+	    if (!joint)
 	      {
 		//Dealing with the Free-Flyer joint, not part of urdf model
-		link = model_.getRoot ();
+		link = model_->getRoot ();
 	      }
 	    else
 	      {
 		// Retrieve joint name.
 		std::string childLinkName = joint->child_link_name;
-		
+
 		// Get child link.
-		link = model_.getLink (childLinkName);
+		link = model_->getLink (childLinkName);
 	      }
 	    if (!link)
 	      throw std::runtime_error ("inconsistent model");
-	    
+
 	    // Retrieve inertial information.
 	    boost::shared_ptr< ::urdf::Inertial> inertial =
 	      link->inertial;
@@ -529,7 +528,7 @@ namespace jrl
 	typedef boost::shared_ptr< ::urdf::Joint> jointPtr_t;
 
 	boost::shared_ptr<const ::urdf::Joint> joint =
-	  model_.getJoint(jointName);
+	  model_->getJoint(jointName);
 
 	if (!joint)
 	  {
@@ -540,7 +539,7 @@ namespace jrl
 	  }
 
 	boost::shared_ptr<const ::urdf::Link> childLink =
-	  model_.getLink (joint->child_link_name);
+	  model_->getLink (joint->child_link_name);
 
 	if (!childLink)
 	  throw std::runtime_error ("failed to retrieve children link");
@@ -563,11 +562,11 @@ namespace jrl
       {
 	if (referenceJointName == currentJointName)
 	  return poseToMatrix
-	    (model_.getJoint
+	    (model_->getJoint
 	     (currentJointName)->parent_to_joint_origin_transform);
 
 	// Retrieve corresponding joint in URDF tree.
-	UrdfJointConstPtrType joint = model_.getJoint(currentJointName);
+	UrdfJointConstPtrType joint = model_->getJoint(currentJointName);
 	if (!joint)
 	  throw std::runtime_error
 	    ("failed to retrieve parent while computing joint position");
@@ -580,7 +579,7 @@ namespace jrl
 
 	// Get parent joint name.
 	std::string parentLinkName = joint->parent_link_name;
-	UrdfLinkConstPtrType parentLink = model_.getLink(parentLinkName);
+	UrdfLinkConstPtrType parentLink = model_->getLink(parentLinkName);
 
 	if (!parentLink)
 	  return transform;
@@ -600,13 +599,20 @@ namespace jrl
       {
 	matrix4d t;
 
-	// Fill rotation part.
-	btQuaternion q (p.rotation.x, p.rotation.y,
-			p.rotation.z, p.rotation.w);
-	btMatrix3x3 rotationMatrix (q);
-	for (unsigned i = 0; i < 3; ++i)
-	  for (unsigned j = 0; j < 3; ++j)
-	    t (i, j) = rotationMatrix[i][j];
+	// Fill rotation part: convert quaternion to rotation matrix.
+	double q0 = p.rotation.w;
+	double q1 = p.rotation.x;
+	double q2 = p.rotation.y;
+	double q3 = p.rotation.z;
+	t(0,0) = q0*q0 + q1*q1 - q2*q2 - q3*q3;
+	t(0,1) = 2*q1*q2 - 2*q0*q3;
+	t(0,2) = 2*q1*q3 + 2*q0*q2;
+	t(1,0) = 2*q1*q2 + 2*q0*q3;
+	t(1,1) = q0*q0 - q1*q1 + q2*q2 - q3*q3;
+	t(1,2) = 2*q2*q3 - 2*q0*q1;
+	t(2,0) = 2*q1*q3 - 2*q0*q2;
+	t(2,1) = 2*q2*q3 + 2*q0*q1;
+	t(2,2) = q0*q0 - q1*q1 - q2*q2 + q3*q3;
 
 	// Fill translation part.
 	t (0, 3) = p.position.x;
