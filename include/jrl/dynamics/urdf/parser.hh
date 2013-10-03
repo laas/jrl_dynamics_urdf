@@ -1,5 +1,5 @@
-// Copyright 2011, 2012, Florent Lamiraux, Guido Manfredi, Thomas
-// Moulard, JRL, CNRS/AIST.
+// Copyright 2011, 2012, 2013 CNRS, LIRRM
+// Authors: Florent Lamiraux, Guido Manfredi, Thomas Moulard, Benjamin Coudrin
 //
 // This file is part of jrl_dynamics_bridge.
 // sot-motion-planner is free software: you can redistribute it and/or
@@ -111,6 +111,11 @@ namespace jrl
 	CjrlHumanoidDynamicRobot*
 	parseStream (const std::string& robotDescription);
 
+	/// \brief Maps link names
+	///
+	///  between parser internal specifications and actual robot names
+	void specifyREPName(const std::string &link,
+			    const std::string &repName);
       protected:
 	/// \brief Find special joints using REP 120.
 	///
@@ -187,6 +192,8 @@ namespace jrl
 	std::string rightFootJointName_;
 	std::string gazeJointName_;
 	/// \}
+	std::map<std::string, std::string> linkREPNames_;
+	void initREPNames();
 
       }; // class Parser
     } // end of namespace urdf.

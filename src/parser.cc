@@ -205,10 +205,34 @@ namespace jrl
             rightFootJointName_ (),
             gazeJointName_ (),
             JointsNamesByRank_ ()
-      {}
+      {
+	initREPNames();
+      }
 
       Parser::~Parser ()
       {}
+
+      void Parser::initREPNames()
+      {
+	linkREPNames_["BODY"]       = "BODY";
+	linkREPNames_["torso"]      = "torso";
+	linkREPNames_["l_wrist"]    = "l_wrist";
+	linkREPNames_["r_wrist"]    = "r_wrist";
+	linkREPNames_["l_gripper"]  = "l_gripper";
+	linkREPNames_["r_gripper"]  = "r_gripper";
+	linkREPNames_["l_ankle"]    = "l_ankle";
+	linkREPNames_["r_ankle"]    = "r_ankle";
+	linkREPNames_["l_sole"]     = "l_sole";
+	linkREPNames_["r_sole"]     = "r_sole";
+	linkREPNames_["gaze"]       = "gaze";
+      }
+
+      void
+      Parser::specifyREPName(const std::string &link,
+			     const std::string &repName)
+      {
+	linkREPNames_[link] = repName;
+      }
 
       boost::shared_ptr< ::urdf::ModelInterface>
       Parser::urdfModel () const
@@ -327,18 +351,17 @@ namespace jrl
       void
       Parser::findSpecialJoints ()
       {
-	findSpecialJoint ("BODY", waistJointName_);
-	findSpecialJoint ("torso", chestJointName_);
-	findSpecialJoint ("l_wrist", leftWristJointName_);
-	findSpecialJoint ("r_wrist", rightWristJointName_);
-	findSpecialJoint ("l_gripper", leftHandJointName_);
-	findSpecialJoint ("r_gripper", rightHandJointName_);
-	findSpecialJoint ("l_ankle", leftAnkleJointName_);
-	findSpecialJoint ("r_ankle", rightAnkleJointName_);
-	findSpecialJoint ("l_sole", leftFootJointName_);
-	findSpecialJoint ("r_sole", rightFootJointName_);
-	findSpecialJoint ("gaze", gazeJointName_);
-	//FIXME: we are missing toes in abstract-robot-dynamics for now.
+	findSpecialJoint (linkREPNames_["BODY"      ],  waistJointName_     );
+	findSpecialJoint (linkREPNames_["torso"     ],  chestJointName_     );
+	findSpecialJoint (linkREPNames_["l_wrist"   ],  leftWristJointName_ );
+	findSpecialJoint (linkREPNames_["r_wrist"   ],  rightWristJointName_);
+	findSpecialJoint (linkREPNames_["l_gripper" ],  leftHandJointName_  );
+	findSpecialJoint (linkREPNames_["r_gripper" ],  rightHandJointName_ );
+	findSpecialJoint (linkREPNames_["l_ankle"   ],  leftAnkleJointName_ );
+	findSpecialJoint (linkREPNames_["r_ankle"   ],  rightAnkleJointName_);
+	findSpecialJoint (linkREPNames_["l_sole"    ],  leftFootJointName_  );
+	findSpecialJoint (linkREPNames_["r_sole"    ],  rightFootJointName_ );
+	findSpecialJoint (linkREPNames_["gaze"      ],  gazeJointName_      );
       }
 
       void
