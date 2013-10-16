@@ -21,7 +21,7 @@ INCLUDE(cmake/eigen.cmake)
 
 SET(PROJECT_NAME jrl-dynamics-urdf)
 SET(PROJECT_DESCRIPTION "JRL dynamics URDF")
-SET(PROJECT_URL "http://github.com/jrl-umi3218/jrl-dynamics-urdf")
+SET(PROJECT_URL "http://github.com/laas/jrl-dynamics-urdf")
 
 SET(CXX_DISABLE_WERROR True)
 

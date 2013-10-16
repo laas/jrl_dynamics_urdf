@@ -6,10 +6,9 @@
     URDF parser for jrl-dynamics
 
   </description>
-  <maintainer email="thomas.moulard@gmail.com">Thomas Moulard</maintainer>
-  <author email="thomas.moulard@gmail.com">Thomas Moulard</author>
+  <maintainer email="hpp@laas.fr">hpp@laas.fr</maintainer>
+  <author email="hpp@laas.fr">hpp@laas.fr</author>
 
-  <author>Thomas Moulard</author>
   <license>LGPL</license>
   <url>http://ros.org/wiki/jrl_dynamics_urdf</url>
 
