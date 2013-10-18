@@ -1,0 +1,36 @@
+<package>
+  <name>jrl_dynamics_urdf</name>
+  <version>2.0.0</version>
+  <description brief="URDF parser for jrl-dynamics">
+
+    URDF parser for jrl-dynamics
+
+  </description>
+  <maintainer email="hpp@laas.fr">hpp@laas.fr</maintainer>
+  <author email="hpp@laas.fr">hpp@laas.fr</author>
+
+  <license>LGPL</license>
+  <url>http://ros.org/wiki/jrl_dynamics_urdf</url>
+
+  <export>
+    <cpp
+       cflags="`rosboost-cfg --cflags` -DBOOST_FILESYSTEM_VERSION=2 -I${prefix}/include"
+       lflags="-L${prefix}/lib -ljrl_dynamics_urdf -Wl,-rpath,${prefix}/lib"
+       />
+    <rosdoc config="rosdoc.yaml" />
+  </export>
+
+  <buildtool_depend>catkin</buildtool_depend> 
+  <build_depend>jrl-mal</build_depend>
+  <build_depend>jrl-dynamics</build_depend>
+  <build_depend>urdfdom</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>resource_retrieverp</build_depend>
+
+  <run_depend>jrl-mal</run_depend>
+  <run_depend>jrl-dynamics</run_depend>
+  <run_depend>urdfdom</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>resource_retrieverp</run_depend>
+
+</package>
