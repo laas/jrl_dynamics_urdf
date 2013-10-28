@@ -19,7 +19,10 @@
 
   <rosdep name="boost" />
   <rosdep name="gtest"/>
+
+  <!-- Disable non-standard dependencies for now
   <rosdep name="jrl-dynamics"/>
+  -->
 
   <depend package="bullet"/>
 
