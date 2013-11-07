@@ -18,6 +18,7 @@ PKG_CONFIG_USE_DEPENDENCY(jrl-dynamics-urdf jrl-mal)
 PKG_CONFIG_USE_DEPENDENCY(jrl-dynamics-urdf jrl-dynamics)
 PKG_CONFIG_USE_DEPENDENCY(jrl-dynamics-urdf urdfdom)
 PKG_CONFIG_USE_DEPENDENCY(jrl-dynamics-urdf resource_retriever)
+PKG_CONFIG_USE_DEPENDENCY(jrl-dynamics-urdf roscpp)
 TARGET_LINK_LIBRARIES(jrl-dynamics-urdf ${Boost_LIBRARIES})
 
 INSTALL(TARGETS jrl-dynamics-urdf DESTINATION ${CMAKE_INSTALL_LIBDIR})
