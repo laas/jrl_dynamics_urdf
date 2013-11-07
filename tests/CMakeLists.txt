@@ -22,4 +22,5 @@ ADD_DEFINITIONS(
 
 ADD_EXECUTABLE(one_dof_revolute_x one_dof_revolute_x.cpp)
 PKG_CONFIG_USE_DEPENDENCY(one_dof_revolute_x jrl-mal)
+PKG_CONFIG_USE_DEPENDENCY(one_dof_revolute_x urdfdom_headers)
 TARGET_LINK_LIBRARIES(one_dof_revolute_x jrl-dynamics-urdf)
