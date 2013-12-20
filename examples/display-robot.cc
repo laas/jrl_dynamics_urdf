@@ -21,7 +21,7 @@
 
 #include <ros/ros.h>
 
-void displayPosition (matrix4d position, const std::string& prefix = "")
+void displayPosition (const matrix4d & position, const std::string& prefix = "")
 {
   static const char* appendToPrefix = " ";
   std::string newPrefix = prefix + appendToPrefix;
@@ -34,7 +34,7 @@ void displayPosition (matrix4d position, const std::string& prefix = "")
     }
 }
 
-void displayBody (CjrlBody* body, const std::string& prefix = "")
+void displayBody (const CjrlBody* body, const std::string& prefix = "")
 {
   static const char* appendToPrefix = " ";
 
@@ -56,7 +56,7 @@ void displayBody (CjrlBody* body, const std::string& prefix = "")
     << newPrefix << "- mass: " << body->mass () << std::endl;
 }
 
-void displayHand (CjrlHand* hand, const std::string& prefix = "")
+void displayHand (const CjrlHand* hand, const std::string& prefix = "")
 {
   static const char* appendToPrefix = " ";
   std::string newPrefix = prefix + appendToPrefix;
@@ -93,7 +93,7 @@ void displayHand (CjrlHand* hand, const std::string& prefix = "")
     << std::endl;
 }
 
-void displayFoot (CjrlFoot* foot, const std::string& prefix = "")
+void displayFoot (const CjrlFoot* foot, const std::string& prefix = "")
 {
   static const char* appendToPrefix = " ";
   std::string newPrefix = prefix + appendToPrefix;
@@ -120,7 +120,7 @@ void displayFoot (CjrlFoot* foot, const std::string& prefix = "")
     << std::endl;
 }
 
-void displayJoint (CjrlJoint* joint, const std::string& prefix = "")
+void displayJoint (const CjrlJoint* joint, const std::string& prefix = "")
 {
   static const char* appendToPrefix = " ";
 
@@ -183,7 +183,7 @@ void displayActuatedJoints (const std::vector<CjrlJoint*>& joints)
       std::cout << "- " << joint->getName () << std::endl;
 }
 
-void displayRobot (CjrlHumanoidDynamicRobot* robot)
+void displayRobot (const CjrlHumanoidDynamicRobot* robot)
 {
   assert (robot);
   std::cout << "Humanoid robot:" << std::endl
