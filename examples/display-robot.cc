@@ -45,6 +45,7 @@ void displayBody (const CjrlBody* body, const std::string& prefix = "")
     }
 
   std::string newPrefix = prefix + appendToPrefix;
+  const matrix3d& inertia = body->inertiaMatrix();
 
   std::cout
     << newPrefix << "- ptr: " << body << std::endl
@@ -53,6 +54,10 @@ void displayBody (const CjrlBody* body, const std::string& prefix = "")
     << newPrefix << " - X: " << body->localCenterOfMass ()[0] << std::endl
     << newPrefix << " - Y: " << body->localCenterOfMass ()[1] << std::endl
     << newPrefix << " - Z: " << body->localCenterOfMass ()[2] << std::endl
+    << newPrefix << "- inertia: " << std::endl
+    << newPrefix << inertia(0,0) << "\t\t" << inertia(0,1) << "\t\t" << inertia(0,2) << "\t\t" << std::endl
+    << newPrefix << inertia(1,0) << "\t\t" << inertia(1,1) << "\t\t" << inertia(1,2) << "\t\t" << std::endl
+    << newPrefix << inertia(2,0) << "\t\t" << inertia(2,1) << "\t\t" << inertia(2,2) << "\t\t" << std::endl
     << newPrefix << "- mass: " << body->mass () << std::endl;
 }
 
