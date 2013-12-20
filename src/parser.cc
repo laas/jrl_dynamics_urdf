@@ -28,6 +28,16 @@
 
 #include "jrl/dynamics/urdf/parser.hh"
 
+
+matrix3d
+matrix4dTo3d (const matrix4d & m)
+{
+  return matrix3d (m(0,0), m(0,1), m(0,2),
+                   m(1,0), m(1,1), m(1,2),
+                   m(2,0), m(2,1), m(2,2));
+}
+
+
 namespace jrl
 {
   namespace dynamics
@@ -322,6 +332,20 @@ namespace jrl
 	std::vector<CjrlJoint*> actJointsVect = actuatedJoints ();
 	robot_->setActuatedJoints (actJointsVect);
 
+	// re-orient the frames for com and inertia
+	for(MapJrlJoint::iterator it = jointsMap_.begin();
+	    it != jointsMap_.end(); ++it)
+	  {
+	    if(it->second->linkedBody() != 0x0)
+	      {
+		matrix3d rotation = (matrix4dTo3d(it->second->initialPosition ()));
+		vector3d com = it->second->linkedBody()->localCenterOfMass();
+		matrix3d inertia = it->second->linkedBody()->inertiaMatrix();
+		it->second->linkedBody()->localCenterOfMass(rotation.Transpose() * com);
+		it->second->linkedBody()->inertiaMatrix(rotation.Transpose() * inertia * rotation);
+	      }
+	  }
+
 	// Here we need to use joints initial positions. Make sure to
 	// call this *after* initializating the structure.
 	fillHandsAndFeet ();
@@ -509,7 +533,6 @@ namespace jrl
 	    double mass = 0.;
 	    if (inertial)
 	      {
-		//FIXME: properly re-orient the frames.
 		localCom[0] = inertial->origin.position.x;
 		localCom[1] = inertial->origin.position.y;
 		localCom[2] = inertial->origin.position.z;
