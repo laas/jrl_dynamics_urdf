@@ -728,11 +728,11 @@ namespace jrl
 	  center[i] = wrist_M_hand (i, 3);
 
 	thumbAxis = vector4dTo3d
-	  (wrist_M_hand * vector4d (0., 0., 1., 1.));
+	  (wrist_M_hand * vector4d (0., 0., 1., 0.));
 	foreFingerAxis = vector4dTo3d
-	  (wrist_M_hand * vector4d (1., 0., 0., 1.));
+	  (wrist_M_hand * vector4d (1., 0., 0., 0.));
 	palmNormal = vector4dTo3d
-	  (wrist_M_hand * vector4d (0., 1., 0., 1.));
+	  (wrist_M_hand * vector4d (0., 1., 0., 0.));
       }
 
       void
