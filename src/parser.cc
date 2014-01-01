@@ -553,7 +553,8 @@ namespace jrl
 	      }
 	    else
 	      std::cerr
-		<< "WARNING: missing inertial information in model"
+		<< "WARNING: missing inertial information in model "
+		<< ((joint != 0X0)? joint->child_link_name : "root link")
 		<< std::endl;
 
 	    // Create body and fill its fields..
