@@ -198,7 +198,8 @@ namespace jrl
 
 
       Parser::Parser ()
-          : model_ (),
+          : JointsNamesByRank_ (),
+            model_ (),
             robot_ (),
             rootJoint_ (),
             jointsMap_ (),
@@ -214,7 +215,7 @@ namespace jrl
             leftFootJointName_ (),
             rightFootJointName_ (),
             gazeJointName_ (),
-            JointsNamesByRank_ ()
+            linkREPNames_()
       {
 	initREPNames();
       }
@@ -352,7 +353,7 @@ namespace jrl
 
     // Load a list of joints ordered by rank
     std::vector<CjrlJoint*> tmp_jv = robot_->jointVector();
-    for (int i=0;i<tmp_jv.size();i++)
+    for (unsigned i=0;i<tmp_jv.size();i++)
         if (std::find(actJointsVect.begin(), actJointsVect.end(),tmp_jv[i])!=actJointsVect.end())
             JointsNamesByRank_[tmp_jv[i]->rankInConfiguration()-6] = tmp_jv[i]->getName();
 
