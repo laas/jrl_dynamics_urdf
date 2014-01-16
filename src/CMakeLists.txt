@@ -20,5 +20,6 @@ PKG_CONFIG_USE_DEPENDENCY(jrl-dynamics-urdf urdfdom)
 PKG_CONFIG_USE_DEPENDENCY(jrl-dynamics-urdf resource_retriever)
 PKG_CONFIG_USE_DEPENDENCY(jrl-dynamics-urdf roscpp)
 TARGET_LINK_LIBRARIES(jrl-dynamics-urdf ${Boost_LIBRARIES})
+SET_TARGET_PROPERTIES(jrl-dynamics-urdf PROPERTIES SOVERSION ${PROJECT_VERSION})
 
 INSTALL(TARGETS jrl-dynamics-urdf DESTINATION ${CMAKE_INSTALL_LIBDIR})
