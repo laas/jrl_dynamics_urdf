@@ -125,12 +125,16 @@ namespace jrl
       makeJointContinuous (Parser::MapJrlJoint& jointsMap,
 			   const matrix4d& position,
 			   const std::string& name,
+			   const Parser::UrdfJointLimitsPtrType& limits,
 			   dynamicsJRLJapan::ObjectFactory& factory)
       {
-	//FIXME: handle properly continuous joints.
-	Parser::UrdfJointLimitsPtrType emptyLimits;
-	return makeJointRotation
-	  (jointsMap, position, name, emptyLimits, factory);
+        CjrlJoint* joint = makeJointRotation
+          (jointsMap, position, name, limits, factory);
+
+        // Continuous joints are supposed to have no bounds
+        joint->lowerBound (0, -std::numeric_limits<double>::max());
+        joint->upperBound (0,  std::numeric_limits<double>::max());
+        return joint;
       }
 
       CjrlJoint*
@@ -430,7 +434,9 @@ namespace jrl
 				   factory_);
 		break;
 	      case ::urdf::Joint::CONTINUOUS:
-		makeJointContinuous (jointsMap_, position, it->first, factory_);
+		makeJointContinuous (jointsMap_, position, it->first,
+				     it->second->limits,
+				     factory_);
 		break;
 	      case ::urdf::Joint::PRISMATIC:
 		makeJointTranslation (jointsMap_, position, it->first,
