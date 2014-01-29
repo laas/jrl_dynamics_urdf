@@ -732,15 +732,35 @@ namespace jrl
 
 	matrix4d wrist_M_hand = wrist_M_world * world_M_hand;
 
+	// Trick: multiply the wrist_M_Hand matrix by the initial rotation of
+	//  the wrist.
+	// This is due to its use in sot-dynamic (cf computeGenericPosition)
+	// where the final transformation of the end effector is computed as such:
+	//  T^F[op] = T^C[op] * (R_init[op])^-1
+	// where T^F is the value obtained when calling the sot signal
+	// , T^C is the value of the joint transformation when calling currentTransformation()
+	// , R_init is the value of the initial joint rotation
+	//
+	// Here we search w2h^F such as T^F[hands] = T^F[wrist] * w2h^F
+	//  using T^C[hands] = T^C[wrist] * w2h^C
+	//  and   T^F[wrist] = T^C[wrist] * (R^init[wrist])^-1
+	// we have w2h^F = R^init[wrist] * w2h^C
+	matrix4d world_R_wrist_init =
+	    wrist->second->initialPosition ();
+	for (unsigned i = 0; i < 3; ++i)
+	  world_R_wrist_init(i,3) =0;
+
+	wrist_M_hand = world_R_wrist_init * wrist_M_hand;
+
 	for (unsigned i = 0; i < 3; ++i)
 	  center[i] = wrist_M_hand (i, 3);
 
 	thumbAxis = vector4dTo3d
-	  (wrist_M_hand * vector4d (0., 0., 1., 0.));
-	foreFingerAxis = vector4dTo3d
 	  (wrist_M_hand * vector4d (1., 0., 0., 0.));
-	palmNormal = vector4dTo3d
+	foreFingerAxis = vector4dTo3d
 	  (wrist_M_hand * vector4d (0., 1., 0., 0.));
+	palmNormal = vector4dTo3d
+	  (wrist_M_hand * vector4d (0., 0., 1., 0.));
       }
 
       void
@@ -794,7 +814,7 @@ namespace jrl
 	    vector3d palmNormal (0., 0., 0.);
 
 	    computeHandsInformation
-	      (leftHand, leftWrist,
+	      (rightHand, rightWrist,
 	       center, thumbAxis, foreFingerAxis, palmNormal);
 
 	    hand->setCenter (center);
