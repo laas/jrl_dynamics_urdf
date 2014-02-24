@@ -1,10 +1,8 @@
 <package>
   <name>jrl_dynamics_urdf</name>
   <version>2.0.0</version>
-  <description brief="URDF parser for jrl-dynamics">
-
+  <description>
     URDF parser for jrl-dynamics
-
   </description>
   <maintainer email="hpp@laas.fr">hpp@laas.fr</maintainer>
   <author email="hpp@laas.fr">hpp@laas.fr</author>

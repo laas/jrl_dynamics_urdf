@@ -28,6 +28,16 @@
 
 #include "jrl/dynamics/urdf/parser.hh"
 
+
+matrix3d
+matrix4dTo3d (const matrix4d & m)
+{
+  return matrix3d (m(0,0), m(0,1), m(0,2),
+                   m(1,0), m(1,1), m(1,2),
+                   m(2,0), m(2,1), m(2,2));
+}
+
+
 namespace jrl
 {
   namespace dynamics
@@ -115,12 +125,16 @@ namespace jrl
       makeJointContinuous (Parser::MapJrlJoint& jointsMap,
 			   const matrix4d& position,
 			   const std::string& name,
+			   const Parser::UrdfJointLimitsPtrType& limits,
 			   dynamicsJRLJapan::ObjectFactory& factory)
       {
-	//FIXME: handle properly continuous joints.
-	Parser::UrdfJointLimitsPtrType emptyLimits;
-	return makeJointRotation
-	  (jointsMap, position, name, emptyLimits, factory);
+        CjrlJoint* joint = makeJointRotation
+          (jointsMap, position, name, limits, factory);
+
+        // Continuous joints are supposed to have no bounds
+        joint->lowerBound (0, -std::numeric_limits<double>::max());
+        joint->upperBound (0,  std::numeric_limits<double>::max());
+        return joint;
       }
 
       CjrlJoint*
@@ -188,7 +202,8 @@ namespace jrl
 
 
       Parser::Parser ()
-          : model_ (),
+          : JointsNamesByRank_ (),
+            model_ (),
             robot_ (),
             rootJoint_ (),
             jointsMap_ (),
@@ -204,7 +219,7 @@ namespace jrl
             leftFootJointName_ (),
             rightFootJointName_ (),
             gazeJointName_ (),
-            JointsNamesByRank_ ()
+            linkREPNames_()
       {
 	initREPNames();
       }
@@ -322,13 +337,27 @@ namespace jrl
 	std::vector<CjrlJoint*> actJointsVect = actuatedJoints ();
 	robot_->setActuatedJoints (actJointsVect);
 
+	// re-orient the frames for com and inertia
+	for(MapJrlJoint::iterator it = jointsMap_.begin();
+	    it != jointsMap_.end(); ++it)
+	  {
+	    if(it->second->linkedBody() != 0x0)
+	      {
+		matrix3d rotation = (matrix4dTo3d(it->second->initialPosition ()));
+		vector3d com = it->second->linkedBody()->localCenterOfMass();
+		matrix3d inertia = it->second->linkedBody()->inertiaMatrix();
+		it->second->linkedBody()->localCenterOfMass(rotation.Transpose() * com);
+		it->second->linkedBody()->inertiaMatrix(rotation.Transpose() * inertia * rotation);
+	      }
+	  }
+
 	// Here we need to use joints initial positions. Make sure to
 	// call this *after* initializating the structure.
 	fillHandsAndFeet ();
 
     // Load a list of joints ordered by rank
     std::vector<CjrlJoint*> tmp_jv = robot_->jointVector();
-    for (int i=0;i<tmp_jv.size();i++)
+    for (unsigned i=0;i<tmp_jv.size();i++)
         if (std::find(actJointsVect.begin(), actJointsVect.end(),tmp_jv[i])!=actJointsVect.end())
             JointsNamesByRank_[tmp_jv[i]->rankInConfiguration()-6] = tmp_jv[i]->getName();
 
@@ -405,7 +434,9 @@ namespace jrl
 				   factory_);
 		break;
 	      case ::urdf::Joint::CONTINUOUS:
-		makeJointContinuous (jointsMap_, position, it->first, factory_);
+		makeJointContinuous (jointsMap_, position, it->first,
+				     it->second->limits,
+				     factory_);
 		break;
 	      case ::urdf::Joint::PRISMATIC:
 		makeJointTranslation (jointsMap_, position, it->first,
@@ -509,7 +540,6 @@ namespace jrl
 	    double mass = 0.;
 	    if (inertial)
 	      {
-		//FIXME: properly re-orient the frames.
 		localCom[0] = inertial->origin.position.x;
 		localCom[1] = inertial->origin.position.y;
 		localCom[2] = inertial->origin.position.z;
@@ -530,7 +560,8 @@ namespace jrl
 	      }
 	    else
 	      std::cerr
-		<< "WARNING: missing inertial information in model"
+		<< "WARNING: missing inertial information in model "
+		<< ((joint != 0X0)? joint->child_link_name : "root link")
 		<< std::endl;
 
 	    // Create body and fill its fields..
@@ -701,15 +732,35 @@ namespace jrl
 
 	matrix4d wrist_M_hand = wrist_M_world * world_M_hand;
 
+	// Trick: multiply the wrist_M_Hand matrix by the initial rotation of
+	//  the wrist.
+	// This is due to its use in sot-dynamic (cf computeGenericPosition)
+	// where the final transformation of the end effector is computed as such:
+	//  T^F[op] = T^C[op] * (R_init[op])^-1
+	// where T^F is the value obtained when calling the sot signal
+	// , T^C is the value of the joint transformation when calling currentTransformation()
+	// , R_init is the value of the initial joint rotation
+	//
+	// Here we search w2h^F such as T^F[hands] = T^F[wrist] * w2h^F
+	//  using T^C[hands] = T^C[wrist] * w2h^C
+	//  and   T^F[wrist] = T^C[wrist] * (R^init[wrist])^-1
+	// we have w2h^F = R^init[wrist] * w2h^C
+	matrix4d world_R_wrist_init =
+	    wrist->second->initialPosition ();
+	for (unsigned i = 0; i < 3; ++i)
+	  world_R_wrist_init(i,3) =0;
+
+	wrist_M_hand = world_R_wrist_init * wrist_M_hand;
+
 	for (unsigned i = 0; i < 3; ++i)
 	  center[i] = wrist_M_hand (i, 3);
 
 	thumbAxis = vector4dTo3d
-	  (wrist_M_hand * vector4d (0., 0., 1., 1.));
+	  (wrist_M_hand * vector4d (1., 0., 0., 0.));
 	foreFingerAxis = vector4dTo3d
-	  (wrist_M_hand * vector4d (1., 0., 0., 1.));
+	  (wrist_M_hand * vector4d (0., 1., 0., 0.));
 	palmNormal = vector4dTo3d
-	  (wrist_M_hand * vector4d (0., 1., 0., 1.));
+	  (wrist_M_hand * vector4d (0., 0., 1., 0.));
       }
 
       void
@@ -763,7 +814,7 @@ namespace jrl
 	    vector3d palmNormal (0., 0., 0.);
 
 	    computeHandsInformation
-	      (leftHand, leftWrist,
+	      (rightHand, rightWrist,
 	       center, thumbAxis, foreFingerAxis, palmNormal);
 
 	    hand->setCenter (center);
