@@ -461,33 +461,19 @@ namespace jrl
 	  }
       }
 
+      void createJointList(std::vector<CjrlJoint*> &jointsVect, CjrlJoint* joint)
+      {
+        if(joint->numberDof() != 0 && joint->numberDof() != 6)
+          jointsVect.push_back(joint);
+
+        for(unsigned i=0; i<joint->countChildJoints(); ++i)
+          createJointList(jointsVect, joint->childJoint(i));
+      }
+
       std::vector<CjrlJoint*> Parser::actuatedJoints ()
       {
 	std::vector<CjrlJoint*> jointsVect;
-
-	typedef std::map<std::string, boost::shared_ptr< ::urdf::Joint > >
-	  jointMap_t;
-
-        for(jointMap_t::const_iterator it = model_->joints_.begin ();
-	    it != model_->joints_.end (); ++it)
-	  {
-	    if (!it->second)
-	      throw std::runtime_error ("null joint shared pointer");
-	    if (it->second->type == ::urdf::Joint::UNKNOWN
-		|| it->second->type == ::urdf::Joint::FLOATING
-		|| it->second->type == ::urdf::Joint::FIXED)
-	      continue;
-	    MapJrlJoint::const_iterator child = jointsMap_.find (it->first);
-	    if (child == jointsMap_.end () || !child->second)
-	      throw std::runtime_error ("failed to compute actuated joints");
-
-	    // The joints already exists in the vector, do not add it twice.
-	    if (std::find
-		(jointsVect.begin (),
-		 jointsVect.end (), child->second) != jointsVect.end ())
-	      continue;
-	    jointsVect.push_back (child->second);
-	  }
+	createJointList(jointsVect, rootJoint_);
 	return jointsVect;
       }
 
